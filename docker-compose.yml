@@ -1,0 +1,75 @@
+services:
+    api-db:
+        container_name: api-db
+        image: postgres:15.0
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_DB=${POSTGRES_NAME}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        volumes:
+            - api-db-volume:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+    airflow-db:
+        image: postgres:15.0
+        environment:
+            - POSTGRES_USER=${AIRFLOW_USER}
+            - POSTGRES_PASSWORD=${AIRFLOW_PASSWORD}
+            - POSTGRES_DB=${AIRFLOW_DB}
+        volumes:
+            - airflow-db-volume:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "airflow"]
+            interval: 10s
+            retries: 5
+            start_period: 5s
+        ports:
+            - "5433:5432"
+        restart: always
+    airflow:
+        image: apache/airflow:2.8.4
+        restart: always
+        depends_on:
+            - airflow-db
+        ports:
+            - "32100:8080"
+        volumes:
+            - ./dags:/opt/airflow/dags
+            - ./tasks:/opt/airflow/tasks
+#            - ./config/airflow.cfg:/opt/airflow/airflow.cfg
+            - ./.env:/opt/airflow/.env
+        command:
+            - "bash"
+            - "-c"
+            - |
+                airflow db init
+                exec airflow webserver &
+                exec airflow scheduler
+                wait
+                exec airflow users create --role Admin --username airflow --email airflow@example.com --firstname airflow --lastname airflow --password airflow
+                wait
+        healthcheck:
+            test: [ "CMD", "curl", "--fail", "http://localhost:32100/health" ]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 30s
+volumes:
+    api-db-volume:
+        driver: "local"
+        driver_opts:
+            type: "none"
+            o: "bind"
+            device: ${API_DB_VOLUMES}
+    airflow-db-volume:
+        driver: "local"
+        driver_opts:
+            type: "none"
+            o: "bind"
+            device: ${AIRFLOW_DB_VOLUMES}
+    airflow-volume:
+        driver: "local"
+        driver_opts:
+            type: "none"
+            o: "bind"
+            device: ${AIRFLOW_VOLUMES}
