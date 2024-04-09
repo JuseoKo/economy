@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from base import DBConnection
+from models.base import DBConnection
 # 모델
 
 # this is the Alembic Config object, which provides
@@ -16,8 +16,8 @@ config.set_main_option('sqlalchemy.url', str(DBConnection("api-db").get_url()))
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from base import Base
-from warehouse.stock import *
+from models.base import Base
+from models.warehouse.stock import *
 target_metadata = Base.metadata
 
 

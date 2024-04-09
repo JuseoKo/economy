@@ -12,7 +12,7 @@ class DBConnection:
     """
     def __init__(self, db: str):
         # .env 파일 로드
-        load_dotenv("../.env")
+        load_dotenv("../../.env")
         self.engines = {
             "api-db": create_engine(
                 f'postgresql+psycopg2://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/{os.getenv("POSTGRES_NAME")}'
