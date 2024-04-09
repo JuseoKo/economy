@@ -1,11 +1,10 @@
 services:
     api-db:
-        container_name: api-db
         image: postgres:15.0
         environment:
             - POSTGRES_USER=${POSTGRES_USER}
-            - POSTGRES_DB=${POSTGRES_NAME}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_NAME}
         volumes:
             - api-db-volume:/var/lib/postgresql/data
         ports:
@@ -13,9 +12,9 @@ services:
     airflow-db:
         image: postgres:15.0
         environment:
-            - POSTGRES_USER=new_username
-            - POSTGRES_PASSWORD=new_password
-            - POSTGRES_DB=new_database_name
+            - POSTGRES_USER=${AIRFLOW_USER}
+            - POSTGRES_PASSWORD=${AIRFLOW_PASSWORD}
+            - POSTGRES_DB=${AIRFLOW_DB}
         volumes:
             - airflow-db-volume:/var/lib/postgresql/data
         healthcheck:
