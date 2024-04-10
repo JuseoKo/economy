@@ -1,1 +1,1 @@
-from .stock_dim import Stock
+from .base import StocksBase

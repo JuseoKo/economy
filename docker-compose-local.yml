@@ -14,7 +14,7 @@ services:
         environment:
             - POSTGRES_USER=${AIRFLOW_USER}
             - POSTGRES_PASSWORD=${AIRFLOW_PASSWORD}
-            - POSTGRES_DB=${AIRFLOW_DB}
+            - POSTGRES_DB=${AIRFLOW_NAME}
         volumes:
             - airflow-db-volume:/var/lib/postgresql/data
         healthcheck:
@@ -34,7 +34,6 @@ services:
             - "32100:8080"
         volumes:
             - ./dags:/opt/airflow/dags
-            - ./tasks:/opt/airflow/tasks
             - ./config/airflow.cfg:/opt/airflow/airflow.cfg
             - ./.env:/opt/airflow/.env
         command:

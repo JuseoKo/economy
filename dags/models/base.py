@@ -18,7 +18,7 @@ class DBConnection:
                 f'postgresql+psycopg2://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/{os.getenv("POSTGRES_NAME")}'
             ),
             "airflow-db": create_engine(
-                "postgresql+psycopg2://airflow:airflow@localhost:5431/airflow"
+                f'postgresql+psycopg2://{os.getenv("AIRFLOW_USER")}:{os.getenv("AIRFLOW_PASSWORD")}@localhost:5431/{os.getenv("AIRFLOW_NAME")}'
             ),
         }
         self.db_name = db
@@ -43,5 +43,4 @@ class DBConnection:
     def __del__(self):
         self.engines["api-db"].dispose()
         self.engines["airflow-db"].dispose()
-
 

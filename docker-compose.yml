@@ -54,7 +54,6 @@ x-airflow-common:
 
   volumes:
     - ./dags:/opt/airflow/dags
-    - ./tasks:/opt/airflow/tasks
     - ./.env:/opt/airflow/.env
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
