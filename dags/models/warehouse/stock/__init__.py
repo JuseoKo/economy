@@ -1,1 +1,2 @@
-from .base import StocksBase
+from .base import StockBase
+from .price import StockPrice

@@ -1,15 +1,16 @@
-from sqlalchemy import Column, Integer, String
-from models.base import Base
-# from models.warehouse.group.timestamp import Timestamp
+from sqlalchemy import Column, String, UniqueConstraint
+from models.warehouse.group.timestamp import Timestamp
+from models.warehouse.group.name import Name
 
-class StocksBase(Base):
+class StockBase(Timestamp, Name):
+    uniq_code = Column(String(100), primary_key=True)
+    symbol = Column(String(20), nullable=False)
+    type = Column(String(5), nullable=False)
+    exchange = Column(String(50), nullable=True)
+    exchange_symbol = Column(String(10), nullable=False)
+
     __tablename__ = 'stocks_base'
 
-    symbol = Column(String, primary_key=True)
-    company_name = Column(String, nullable=False)
-
-    # You can use Timestamp here if needed
-    # timestamp = Column(Timestamp)
-
-    def __repr__(self):
-        return f"<stocks_base(symbol='{self.symbol}')>"
+    __table_args__ = (
+        UniqueConstraint('symbol', 'exchange_symbol', name='stocks_base_uniq'),
+    )

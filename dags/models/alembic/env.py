@@ -17,11 +17,11 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # SQLAlchemy 구성을 사용하여 엔진 설정
-config.set_main_option('sqlalchemy.url', str(DBConnection("api-db").get_url()))
+config.set_main_option('sqlalchemy.url', str(DBConnection("api").get_url()))
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from models.base import Base
+from models.base import *
 from models.warehouse.stock import *
 target_metadata = Base.metadata
 
