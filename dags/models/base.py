@@ -6,10 +6,12 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class DBConnection:
     """
     DB세션을 연결해주는 클래스입니다.
     """
+
     def __init__(self, db: str):
         # .env 파일 로드
         load_dotenv("../../.env")
@@ -43,4 +45,3 @@ class DBConnection:
     def __del__(self):
         self.engines["api"].dispose()
         self.engines["airflow"].dispose()
-
