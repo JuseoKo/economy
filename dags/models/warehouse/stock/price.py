@@ -32,34 +32,3 @@ class StockPrice(Timestamp):
 
 # 결합 인덱스 설정
 Index("idx_stock_price_date_uniq_code", StockPrice.uniq_code, StockPrice.date)
-
-
-class BInfo(Base):
-    id = Column(BigInteger, primary_key=True)
-    m_code = Column(String(100))
-    b_num = Column(String(100))
-    p_num = Column(String(100))
-    __tablename__ = "b_info"
-
-
-class AInfo(Base):
-    id = Column(BigInteger, primary_key=True)
-    m_code = Column(text)
-    b_num = Column(text)
-    p_num = Column(text)
-    __tablename__ = "a_info"
-
-
-class AgentInfo(Base):
-    id = Column(BigInteger, primary_key=True)
-    담당자사번 = Column(text)
-    담당자명 = Column(text)
-    소속코드 = Column(text)
-
-
-class TotalPay(Base):
-    id = Column(BigInteger, primary_key=True)
-    매체코드 = Column(text)
-    대상월 = Column(text)
-    광고매출 = Column(text)
-    사업자번호 = Column(text)
