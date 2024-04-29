@@ -13,4 +13,7 @@ psycopg2-binary==2.9.6
 psycopg==3.1.9
 # airflow 라이브러리
 apache-airflow==2.8.4
+# 야후 파이낸스
+yfinance==0.2.38
+
 
