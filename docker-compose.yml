@@ -57,7 +57,7 @@ x-airflow-common:
     AIRFLOW_UID: "50000"
 
   volumes:
-    - ./dags:/opt/airflow/dags
+    - ./airflow:/opt/airflow/dags
     - ./.env:/opt/airflow/.env
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins

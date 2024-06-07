@@ -33,7 +33,7 @@ services:
         ports:
             - "32100:8080"
         volumes:
-            - ./dags:/opt/airflow/dags
+            - ./airflow:/opt/airflow/dags
             - ./config/airflow.cfg:/opt/airflow/airflow.cfg
             - ./.env:/opt/airflow/.env
         command:
