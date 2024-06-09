@@ -9,4 +9,12 @@ with DAG(
     start_date=datetime(2024, 1, 1),  # DAG의 시작 날짜
     catchup=False
 ) as dag:
-    pass
+    from tasks.stock.us_stock import us_stock_base_to_database
+    from airflow.operators.python import PythonOperator
+
+    us_stock_base_to_database_all = PythonOperator(
+        task_id="us_stock_base_to_database_all",
+        python_callable=us_stock_base_to_database,
+    )
+
+    us_stock_base_to_database_all

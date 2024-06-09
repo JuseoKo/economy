@@ -1,8 +1,4 @@
-import FinanceDataReader as fdr
-# nyse = fdr.StockListing('NYSE')
-nasdaq = fdr.StockListing('NASDAQ')
-
-ticker_list = " ".join(nasdaq['Symbol'].to_list())
-import yfinance as yf
-ticker = yf.tickers(ticker_list)
-pass
+import os
+current_path = os.getcwd()
+print(current_path)
+print(load_dotenv(f"{two_parents_path}/.env"))
