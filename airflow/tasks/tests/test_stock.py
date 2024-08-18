@@ -11,3 +11,4 @@ class TestStock(unittest.TestCase):
 
     def test_us_stock_to_price(self):
         cnt = self.run.us_stock_to_price(start_date='2024-01-01', end_date='2024-05-01')
+        assert cnt > 0
