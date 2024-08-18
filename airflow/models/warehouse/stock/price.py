@@ -11,13 +11,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from models.warehouse.group.timestamp import Timestamp
-from models.base import Base
 
 
 class StockPrice(Timestamp):
     uniq_code = Column(
         String(100),
-        ForeignKey("stocks_base.uniq_code"),
+        ForeignKey("stock_base.uniq_code"),
         primary_key=True,
         doc="유니크하게 만든 코드",
     )
@@ -25,9 +24,9 @@ class StockPrice(Timestamp):
     date = Column(DATE, nullable=False)
 
     # StocksBase 모델과의 관계를 설정합니다.
-    stocks_base = relationship("StocksBase", back_populates="StockPrice")
+    stocks_base = relationship("StockBase", back_populates="StockPrice")
     __tablename__ = "stock_price"
-    __table_args__ = (UniqueConstraint("uniq_code", "date", name="stocks_price_uniq"),)
+    __table_args__ = (UniqueConstraint("uniq_code", "date", name="stock_price_uniq"),)
 
 
 # 결합 인덱스 설정

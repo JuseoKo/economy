@@ -11,7 +11,7 @@ class StockBase(Timestamp, Name):
     industry = Column(String(100), nullable=True, comment='산업')
     industry_code= Column(String(10), nullable=True, comment='산업 코드')
 
-    __tablename__ = "stocks_base"
+    __tablename__ = "stock_base"
 
     # __table_args__ = (
     #     UniqueConstraint("symbol", "exchange_symbol", name="stocks_base_uniq"),
