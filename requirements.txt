@@ -11,6 +11,8 @@ pytest==7.3.1
 # postgresql관련 라이브러리
 psycopg2-binary==2.9.6
 psycopg==3.1.9
+# ORM 라이브러리
+sqlalchemy==1.4.53
 # airflow 라이브러리
 apache-airflow==2.9.1
 # 야후 파이낸스

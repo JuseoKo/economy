@@ -24,7 +24,7 @@ class DBConnection:
             load_dotenv(f".env")
         self.engines = {
             "api": create_engine(
-                f'postgresql+psycopg2://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:5432/{os.getenv("POSTGRES_NAME")}'
+                f'postgresql+psycopg2://{os.getenv("API_USER")}:{os.getenv("API_PASSWORD")}@{os.getenv("API_HOST")}:5432/{os.getenv("API_NAME")}'
             ),
             "airflow": create_engine(
                 f'postgresql+psycopg2://{os.getenv("AIRFLOW_USER")}:{os.getenv("AIRFLOW_PASSWORD")}@{os.getenv("AIRFLOW_POSTGRES_HOST")}:5431/{os.getenv("AIRFLOW_NAME")}'
