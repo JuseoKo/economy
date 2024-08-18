@@ -9,4 +9,4 @@ def uniq_code_prep(country: str, symbol: str, s_type: str) -> str:
     Returns:
 
     """
-    return f"{country}_{symbol}_{s_type}"
+    return f"{country}_{s_type}_{symbol}"

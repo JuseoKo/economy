@@ -1,1 +1,2 @@
-from .price import UsStockPrice
+from .usa_price import UsStockPrice
+from .info import StockInfo

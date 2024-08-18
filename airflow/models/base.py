@@ -58,8 +58,21 @@ class DBConnection(metaclass=SingletonMeta):
         """
         return self.engines[self.db_name].url
 
+    def __del__(self):
+        self.engines["api"].dispose()
+        self.engines["airflow"].dispose()
+
+class DBCrud(DBConnection, metaclass=SingletonMeta):
+    """
+    DB crud를 수행하는 클래스입니다.
+    """
+
+    def __init__(self, db: str):
+        super().__init__(db=db)
+
+    @staticmethod
     def pg_bulk_upsert(
-        self, session, df: pd.DataFrame, model, uniq_key: list, batch_size: int = 100
+        session, df: pd.DataFrame, model, uniq_key: list, batch_size: int = 100
     ) -> int:
         """
         데이터프레임을 bulk_upsert 하는 함수입니다.
@@ -69,21 +82,18 @@ class DBConnection(metaclass=SingletonMeta):
         :param uniq_key:
         :return:
         """
-        # 모델의 컬럼 이름을 가져옵니다.
         model_columns = [c.name for c in model.__table__.columns]
-
-        # 데이터프레임의 컬럼 이름을 가져옵니다.
         df_columns = df.columns.tolist()
         cnt = 0
+
         for start in range(0, len(df), batch_size):
-            # 데이터프레임을 딕셔너리로 변환합니다.
+            # 데이터프레임을 딕셔너리로 변환
             data = df.iloc[start : start + batch_size].to_dict(orient="records")
 
-            # PostgreSQL upsert 문을 생성합니다.
+            # upsert 문을 생성
             stmt = insert(model).values(data)
 
-            # 충돌 시 업데이트할 필드를 설정합니다.
-            # 데이터프레임 컬럼과 모델 컬럼 간의 차이를 처리합니다.
+            # update 할 컬럼 설정
             update_dict = {
                 col: insert(model).excluded[col]
                 for col in df_columns
@@ -93,12 +103,7 @@ class DBConnection(metaclass=SingletonMeta):
             update_stmt = stmt.on_conflict_do_update(
                 index_elements=uniq_key, set_=update_dict
             )
-            # 쿼리를 실행합니다.
             session.execute(update_stmt)
             cnt += len(data)
         session.commit()
         return cnt
-
-    def __del__(self):
-        self.engines["api"].dispose()
-        self.engines["airflow"].dispose()

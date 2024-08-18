@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, UniqueConstraint, Integer
 from models.warehouse.group.timestamp import Timestamp
 from models.warehouse.group.name import Name
+from sqlalchemy.orm import relationship
 
 
 class AllBase(Timestamp, Name):
@@ -12,11 +13,12 @@ class AllBase(Timestamp, Name):
     symbol = Column(String(20), nullable=False, comment="심볼 (MSFT 등)")
     type = Column(String(5), nullable=False, comment="ETF/STOCK/ETN/INDEX")
     country = Column(String(5), nullable=False, comment="국가코드, USA/KOR ...")
-    exchange = Column(String(50), nullable=True, comment="거래소")
-    industry = Column(String(100), nullable=True, comment="산업")
-    industry_code = Column(String(10), nullable=True, comment="산업 코드")
+    manage = Column(String(30), nullable=False, comment="관리자 NASDAQ, S&P Global KOSPI 등")
 
     __tablename__ = "all_base"
+
+    us_stock_prices = relationship("UsStockPrice", back_populates="base")
+    stock_info = relationship("StockInfo", back_populates="base")
 
     # __table_args__ = (
     #     UniqueConstraint("symbol", "exchange_symbol", name="stocks_base_uniq"),
