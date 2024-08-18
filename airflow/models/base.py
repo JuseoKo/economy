@@ -8,12 +8,15 @@ from tasks.utils.singleton import SingletonMeta
 from airflow.logging_config import log
 
 from sqlalchemy.dialects.postgresql import insert
+
 Base = orm.declarative_base()
+
 
 class DBConnection(metaclass=SingletonMeta):
     """
     DB세션을 연결해주는 클래스입니다.
     """
+
     def __init__(self, db: str):
         # .env 파일 로드
         current_path = os.getcwd()
@@ -55,7 +58,9 @@ class DBConnection(metaclass=SingletonMeta):
         """
         return self.engines[self.db_name].url
 
-    def pg_bulk_upsert(self, session, df: pd.DataFrame, model, uniq_key: list, batch_size: int = 100) -> int:
+    def pg_bulk_upsert(
+        self, session, df: pd.DataFrame, model, uniq_key: list, batch_size: int = 100
+    ) -> int:
         """
         데이터프레임을 bulk_upsert 하는 함수입니다.
         :param session:
@@ -72,19 +77,21 @@ class DBConnection(metaclass=SingletonMeta):
         cnt = 0
         for start in range(0, len(df), batch_size):
             # 데이터프레임을 딕셔너리로 변환합니다.
-            data = df.iloc[start:start + batch_size].to_dict(orient='records')
+            data = df.iloc[start : start + batch_size].to_dict(orient="records")
 
             # PostgreSQL upsert 문을 생성합니다.
             stmt = insert(model).values(data)
 
             # 충돌 시 업데이트할 필드를 설정합니다.
             # 데이터프레임 컬럼과 모델 컬럼 간의 차이를 처리합니다.
-            update_dict = {col: insert(model).excluded[col] for col in df_columns if
-                           col in model_columns and col not in uniq_key}
+            update_dict = {
+                col: insert(model).excluded[col]
+                for col in df_columns
+                if col in model_columns and col not in uniq_key
+            }
 
             update_stmt = stmt.on_conflict_do_update(
-                index_elements=uniq_key,
-                set_=update_dict
+                index_elements=uniq_key, set_=update_dict
             )
             # 쿼리를 실행합니다.
             session.execute(update_stmt)
@@ -95,5 +102,3 @@ class DBConnection(metaclass=SingletonMeta):
     def __del__(self):
         self.engines["api"].dispose()
         self.engines["airflow"].dispose()
-
-
