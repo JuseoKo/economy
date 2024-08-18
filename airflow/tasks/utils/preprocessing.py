@@ -1,4 +1,3 @@
-import pandas as pd
 
 def uniq_code_prep(country: str, symbol: str, s_type: str) -> str:
     """
