@@ -4,17 +4,16 @@ from models.base import DBCrud
 from models.warehouse.base.base import AllBase
 from models.warehouse.stock.usa_price import UsStockPrice
 import pandas as pd
-from tasks.utils import preprocessing
-from tasks.utils import utils
+from tasks.utils import preprocessing, utils, default_request
 from airflow.logging_config import log
 
 class StockToWarehouse:
 
     def __init__(self):
         # 1. DB 연결
-        db = "api"
-        self.db = DBCrud(db=db)
+        self.db = DBCrud(db="api")
         self.session = self.db.create_session()
+        self.request = default_request.Request(site="SEC")
 
     def us_stock_to_base(self):
         """
@@ -24,23 +23,21 @@ class StockToWarehouse:
         log.info("미국주식 목록 수집")
 
         # 2. 데이터 크롤링 및 거래소 저장
-        nasdaq = fdr.StockListing('NASDAQ')
-        nyse = fdr.StockListing('NYSE')
-        nasdaq["manage"] = "NASDAQ"
-        nyse["manage"] = "NYSE"
-        df = pd.concat([nasdaq, nyse])
+        url = "https://www.sec.gov/files/company_tickers.json"
+        response = self.request.get(url)
+        json_data = response.json()
 
-        # 3. 데이터 전처리
-        df.rename(columns={"Symbol": "symbol", "Name": "full_name"},
-                      inplace=True)
-        df = df.drop(columns=["IndustryCode", "Industry"])
+        # 리스트로 변환
+        list_data = [{**value} for key, value in json_data.items()]
+        df = pd.DataFrame(list_data)
+        df.rename(columns={"cik_str": "id", "ticker": "symbol", "title": "full_name"}, inplace=True)
+        df['id'] = df['id'].astype(str).str.zfill(10)
         df["type"] = "STOCK"
         df['country'] = "USA"
+        df['source'] = "SEC"
         df["uniq_code"] = df.apply(lambda x: preprocessing.uniq_code_prep( "US", x['symbol'], x['type']), axis=1)
-        df.drop_duplicates(inplace=True)
 
-
-        # 4. 저장 StockBase 테이블
+        # 4. 저장 StockBase 테이블 'uniq_code', 'id_code', "symbol", "full_name", "type", "country"
         cnt = self.db.pg_bulk_upsert(session=self.db.create_session(), df=df, model=AllBase, uniq_key=["uniq_code"])
         log.info(f"[{cnt}/{len(df)}] 미국주식 목록 완료")
         return cnt
@@ -89,3 +86,5 @@ class StockToWarehouse:
         df['date'] = df.apply(lambda x: x['date'].date(), axis=1)
         cnt = self.db.pg_bulk_upsert(session=self.db.create_session(), df=df, model=UsStockPrice, uniq_key=["uniq_code", "date"])
         return cnt
+
+    # def us_stock_to_cik(self):

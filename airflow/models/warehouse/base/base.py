@@ -8,12 +8,12 @@ class AllBase(Timestamp, Name):
     """
     모든 지수의 베이스 테이블
     """
-
+    id = Column(String(100), nullable=False, comment="CIK, ISIN 등 식별코드")
     uniq_code = Column(String(100), primary_key=True, comment="내부 관리 코드")
     symbol = Column(String(20), nullable=False, comment="심볼 (MSFT 등)")
     type = Column(String(5), nullable=False, comment="ETF/STOCK/ETN/INDEX")
     country = Column(String(5), nullable=False, comment="국가코드, USA/KOR ...")
-    manage = Column(String(30), nullable=False, comment="관리자 NASDAQ, S&P Global KOSPI 등")
+    source = Column(String(30), nullable=False, comment="데이터 소스, S&P Global, SEC 등")
 
     __tablename__ = "all_base"
 
