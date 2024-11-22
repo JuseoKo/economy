@@ -17,7 +17,6 @@ sqlalchemy==1.4.53
 apache-airflow==2.9.1
 # 야후 파이낸스
 yfinance==0.2.38
-finance-datareader==0.9.90
-plotly==5.22.0
+
 
 

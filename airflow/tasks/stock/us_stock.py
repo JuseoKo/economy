@@ -6,6 +6,8 @@ from models.warehouse.stock.usa_price import UsStockPrice
 import pandas as pd
 from tasks.utils import preprocessing, utils, default_request
 from airflow.logging_config import log
+from tasks import common
+
 
 class StockToWarehouse:
 
