@@ -1,12 +1,6 @@
-# https://docs.python.org/ko/3.12/library/dataclasses.html reference
 from dataclasses import dataclass, asdict
-
 from sqlalchemy import Column, Integer, String, create_engine, Text, DateTime, ForeignKey
 from ..base import Base
-from sqlalchemy.orm import relationship
-from datetime import datetime, timezone, timedelta
-
-KST = timezone(timedelta(hours=9))
 
 class BaseModel:
     """
