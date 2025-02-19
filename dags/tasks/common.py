@@ -1,19 +1,5 @@
-from abc import abstractmethod, ABC, ABCMeta
-
-
-class SingletonMeta(ABCMeta):
-    """
-    싱글톤 메타클래스
-    """
-
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
-
+from dags.utils.meta_class import SingletonMeta
+from abc import ABC
 
 class Extract(ABC, metaclass=SingletonMeta):
     """

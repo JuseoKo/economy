@@ -20,3 +20,7 @@ class Request(object):
     def get(self, url, headers: dict = {}):
         self.headers.update(headers)
         return requests.get(url, headers=self.headers)
+
+    def post(self, url, data, headers: dict = {}):
+        self.headers.update(headers)
+        return requests.post(url, data=data, headers=self.headers)

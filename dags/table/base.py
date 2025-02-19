@@ -1,5 +1,5 @@
 from dags.utils import utils
-from dags.utils.singleton import SingletonMeta
+from dags.utils.meta_class import SingletonMeta
 import os
 import logging
 from sqlalchemy.orm import sessionmaker
