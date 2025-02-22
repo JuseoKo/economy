@@ -1,5 +1,5 @@
-from dags.utils import utils
-from dags.utils.meta_class import SingletonMeta
+from pipeline.utils import utils
+from pipeline.utils.meta_class import SingletonMeta
 import os
 import logging
 from sqlalchemy.orm import sessionmaker

@@ -16,7 +16,7 @@
 
 
 
-from dags.tasks.stock.krx import Krx
+from pipeline.tasks.stock.krx import Krx
 
 krx = Krx()
 krx.get_stock_list()

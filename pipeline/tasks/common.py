@@ -1,4 +1,4 @@
-from dags.utils.meta_class import SingletonMeta
+from pipeline.utils.meta_class import SingletonMeta
 from abc import abstractmethod
 import pandas as pd
 

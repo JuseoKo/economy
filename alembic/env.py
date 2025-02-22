@@ -2,11 +2,11 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from dags.table.base import Base
+from pipeline.table.base import Base
 from alembic import context
-from dags.utils import utils
+from pipeline.utils import utils
 import os
-import dags.table.models
+import pipeline.table.models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
