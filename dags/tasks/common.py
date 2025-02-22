@@ -1,45 +1,46 @@
 from dags.utils.meta_class import SingletonMeta
-from abc import ABC
+from abc import abstractmethod
+import pandas as pd
 
-class Extract(ABC, metaclass=SingletonMeta):
-    """
-    데이터 추출 : 크롤링, API, DB 등을 통한 데이터 추출
-    """
-    @abstractmethod
-    def extract(self):
+
+
+class ETL(metaclass=SingletonMeta):
+    def __init__(self):
+        pass
+
+
+    def fetch(self):
         """
-        데이터 추출을 위한 추상 메소드
+        데이터 수집(추출)
+        Args:
+            url:
+            **kwargs:
+
+        Returns:
+
         """
         pass
 
 
-class TransForm(ABC, metaclass=SingletonMeta):
-    """
-    데이터 변환 : 데이터 가공 및 분석
-    """
-    @abstractmethod
-    def trans_form(self):
+    def load(self) -> str:
         """
-        데이터 변환을 위한 추상 메소드
-        """
-        pass
+        저장
+        Args:
+            data:
 
+        Returns:
 
-class LoadToLake(ABC, metaclass=SingletonMeta):
-
-    @abstractmethod
-    def load_to_lake(self):
-        """
-        데이터 로드를 위한 추상 메소드
         """
         pass
 
 
-class LoadToWareHouse(ABC, metaclass=SingletonMeta):
-
-    @abstractmethod
-    def load_to_warehouse(self):
+    def transform(self) -> str:
         """
-        데이터 로드를 위한 추상 메소드
+        변환
+        Args:
+            data:
+
+        Returns:
+
         """
         pass

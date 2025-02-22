@@ -1,11 +1,25 @@
-from dags.table.base import DBConnection
-from sqlalchemy import text
+# from dags.table.base import DBConnection
+# from sqlalchemy import text
+#
+#
+# db = DBConnection().sync_db()
+# result = db.execute(text("SELECT version()"))
+# print(result.fetchone())
+#
+
+# import requests
+#
+# # 요청 URL
+# url = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd"
+#
+# # 요청할 데이터 (Form Data)
 
 
-db = DBConnection().sync_db()
-result = db.execute(text("SELECT version()"))
-print(result.fetchone())
 
+from dags.tasks.stock.krx import Krx
+
+krx = Krx()
+krx.get_stock_list()
 
 """
 F TABLE

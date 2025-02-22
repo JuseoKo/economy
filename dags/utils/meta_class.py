@@ -1,4 +1,4 @@
-from abc import abstractmethod, ABC, ABCMeta
+from abc import ABCMeta
 
 class SingletonMeta(ABCMeta):
     """
