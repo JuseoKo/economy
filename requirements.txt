@@ -8,7 +8,7 @@ python-dotenv==1.0.1
 # postgresql관련 라이브러리
 psycopg==3.2.4
 psycopg2-binary==2.9.10
-pytest-asyncio==0.25.2
+pytest==8.3.4
 # ORM 라이브러리
 alembic==1.14.0
 sqlalchemy==1.4.53
