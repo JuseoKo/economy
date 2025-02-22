@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+# 테스트를 실행할 기본 디렉터리 지정
+pythonpath = ["."]
+
+# pytest 마커 설정
+markers = [
+    "unit: 단위 테스트",
+    "integration: 통합 테스트",
+    "slow: 실행 시간이 오래 걸리는 테스트",
+    "temp: 임시로 작성된 테스트",
+]
+
+# pytest 실행 시 기본적으로 사용할 옵션
+addopts = "-s --strict-markers --disable-warnings -ra --tb=short"
+
+# 테스트 파일 및 함수 패턴 지정
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
