@@ -10,7 +10,7 @@ class TestStockList:
 
     @pytest.mark.integration
     def test_stock_list(self, create_cls):
-        res = create_cls.run()
+        res = create_cls.run("KRX 주가 데이터 수집")
         assert len(res) > 0
 
     @pytest.mark.unit

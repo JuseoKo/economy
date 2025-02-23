@@ -33,4 +33,9 @@ class Request(object):
     def post(self, url: str, headers: dict = None, data: dict = None, payload: dict = None):
         if headers is not None:
             self.headers.update(headers)
-        return requests.post(url, data=data, json=payload, headers=self.headers)
+
+        res = requests.post(url, data=data, json=payload, headers=self.headers)
+
+        if res.status_code != 200:
+            raise f"[CODE: {res.status_code}][URL: {url}] 데이터 수집에 오류가 발생했습니다. {res.text}"
+        return res

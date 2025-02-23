@@ -1,10 +1,10 @@
 
-def uniq_code_prep(country: str, symbol: str, s_type: str) -> str:
+def create_ucode(country: str, s_type: str, symbol: str) -> str:
     """
     유니크코드를 생성하는 함수입니다.
     Args:
-        country: US/
-        symbol: APPL 등
+        country: US/KR
+        symbol: APPL/098120 등
         s_type: ETF/ETN/STOCK/INDEX 등
     Returns:
 

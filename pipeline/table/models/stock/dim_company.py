@@ -6,13 +6,12 @@ from ...base import Base
 class CompanyDimension(Base):
     __tablename__ = 'dim_company'
     ucode = Column(String, primary_key=True)
-    isin = Column(String, unique=True, nullable=False)
     kr_name = Column(String, nullable=True) # 회사 이름
     us_name = Column(String, nullable=True) # 회사 영문 이름
     security_type = Column(String, nullable=False)  # ETF, ETN, 주식 여부
-    is_listed = Column(String, nullable=False)  # 상장 여부 (예: 'Y' or 'N')
-    country = Column(String, nullable=False) # 본사 국가
-    industry = Column(String, nullable=True) # 산업
+    market = Column(String, nullable=False) # 상장 거래소
     symbol = Column(String, nullable=False) # 회사 식별 코드
-
+    country = Column(String, nullable=False) # 국가
+    isin = Column(String, nullable=False)
+    is_yn = Column(String, nullable=False)  # 상장 여부 (예: 'Y' or 'N')
     fact_records = relationship("FactStock", back_populates="company")
