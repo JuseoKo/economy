@@ -2,3 +2,5 @@
 st-airflow.iml
 .idea
 logs
+plugins
+test.py
