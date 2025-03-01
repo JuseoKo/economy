@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy import Column, String, Float, Date, ForeignKey, BigInteger, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ...base import Base
 
@@ -8,7 +8,14 @@ class FactStock(Base):
 
     ucode = Column(String, ForeignKey('dim_company.ucode'), primary_key=True)
     date = Column(Date, nullable=False) # 년월일
-    volume = Column(Integer, nullable=False) # 거래량
-    stock_price = Column(Float, nullable=False) # 주가
+    volume = Column(BigInteger, nullable=False) # 거래량
+    price = Column(Float, nullable=False) # 주가
+    mkt_cap = Column(Float, nullable=False) # 시가총액
+    list_shrs = Column(BigInteger, nullable=False) # 총 주식 수
 
-    company = relationship("CompanyDimension", back_populates="fact_records")
+    company = relationship("CompanyDimension", back_populates="fact_stock")
+
+
+    __table_args__ = (
+        PrimaryKeyConstraint('ucode', 'date', name='pk_fact_stock_ucode_date'),
+    )

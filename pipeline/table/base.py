@@ -3,7 +3,6 @@ import pandas as pd
 from pipeline.utils import utils
 from pipeline.utils.meta_class import SingletonMeta
 import os
-import logging
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import orm
@@ -26,9 +25,6 @@ class DBConnection(metaclass=SingletonMeta):
             f'postgresql+psycopg2://{os.getenv("API_USER")}:{os.getenv("API_PASSWORD")}@{os.getenv("API_HOST")}:5432/{os.getenv("API_NAME")}'
         )
         self.session = self.sync_db()
-
-        logging.info(f"engines created")
-        logging.info(f"URL: {self.sync_engine.url}")
 
     def sync_db(self):
         """

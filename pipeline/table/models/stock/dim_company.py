@@ -5,6 +5,7 @@ from ...base import Base
 # 회사 차원 테이블
 class CompanyDimension(Base):
     __tablename__ = 'dim_company'
+
     ucode = Column(String, primary_key=True)
     kr_name = Column(String, nullable=True) # 회사 이름
     us_name = Column(String, nullable=True) # 회사 영문 이름
@@ -14,4 +15,7 @@ class CompanyDimension(Base):
     country = Column(String, nullable=False) # 국가
     isin = Column(String, nullable=False)
     is_yn = Column(String, nullable=False)  # 상장 여부 (예: 'Y' or 'N')
-    fact_records = relationship("FactStock", back_populates="company")
+
+    fact_stock = relationship("FactStock", back_populates="company")
+    fact_stock_short_balance = relationship("FactStockShortBalance", back_populates="company")
+    fact_stock_short_seller = relationship("FactStockShortSeller", back_populates="company")
