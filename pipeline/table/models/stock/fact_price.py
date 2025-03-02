@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from ...base import Base
 
 # 팩트 테이블 (주가 데이터)
-class FactStock(Base):
-    __tablename__ = 'fact_stock'
+class FactStockPrice(Base):
+    __tablename__ = 'fact_stock_price'
 
     ucode = Column(String, ForeignKey('dim_company.ucode'), primary_key=True)
     date = Column(Date, nullable=False) # 년월일
@@ -13,7 +13,7 @@ class FactStock(Base):
     mkt_cap = Column(Float, nullable=False) # 시가총액
     list_shrs = Column(BigInteger, nullable=False) # 총 주식 수
 
-    company = relationship("CompanyDimension", back_populates="fact_stock")
+    company = relationship("CompanyDimension", back_populates="fact_stock_price")
 
 
     __table_args__ = (

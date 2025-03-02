@@ -16,6 +16,6 @@ class CompanyDimension(Base):
     isin = Column(String, nullable=False)
     is_yn = Column(String, nullable=False)  # 상장 여부 (예: 'Y' or 'N')
 
-    fact_stock = relationship("FactStock", back_populates="company")
+    fact_stock = relationship("FactStockPrice", back_populates="company")
     fact_stock_short_balance = relationship("FactStockShortBalance", back_populates="company")
     fact_stock_short_seller = relationship("FactStockShortSeller", back_populates="company")
