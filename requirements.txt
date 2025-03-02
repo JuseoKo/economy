@@ -1,21 +1,25 @@
 # Python 3.12.0
+# 데이터 처리
 pandas==2.2.3
-beautifulsoup4==4.12.2
 black==23.3.0
-loguru==0.7.0
 python-dotenv==1.0.1
+
 # 테스트 라이브러리
-# postgresql관련 라이브러리
+pytest==8.3.4
+
+# DB
 psycopg==3.2.4
 psycopg2-binary==2.9.10
-pytest==8.3.4
-# ORM 라이브러리
 alembic==1.14.0
 sqlalchemy==1.4.53
+
 # airflow 라이브러리
 apache-airflow==2.10.5
-# 야후 파이낸스
+
+# 데이터 수집
 yfinance==0.2.38
+requests==2.32.3
+beautifulsoup4==4.12.2
 
-
-
+# 기타
+black==23.3.0
