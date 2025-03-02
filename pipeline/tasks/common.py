@@ -6,7 +6,7 @@ class ETL(metaclass=SingletonMeta):
     def __init__(self):
         pass
 
-    def fetch(self) -> pd.DataFrame|list:
+    def fetch(self, **kwargs) -> pd.DataFrame|list:
         """
         데이터 수집(추출)
         """
