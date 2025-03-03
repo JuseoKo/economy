@@ -1,12 +1,13 @@
 from sqlalchemy import Column, String, Date, ForeignKey, Numeric, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ...base import Base
+from ..group.timestamp import TimestampMixin
 
 # 재무 상태표 Balance Sheet
-class FactStockBS(Base):
+class FactStockBS(Base, TimestampMixin):
     __tablename__ = 'fact_stock_bs'
 
-    ucode = Column(String, ForeignKey('dim_company.ucode'), primary_key=True)
+    ucode = Column(String, ForeignKey('dim_company.ucode'))
     date = Column(Date, nullable=False) # 년월일
     total_assets = Column(Numeric(21, 3), nullable=False)  # 자산 총계
     total_liabilities = Column(Numeric(21, 3), nullable=False)  # 부채 총계

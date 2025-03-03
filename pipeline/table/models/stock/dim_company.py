@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, Float, String
+from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 from ...base import Base
+from ..group.timestamp import TimestampMixin
 
 # 회사 차원 테이블
-class CompanyDimension(Base):
+class CompanyDimension(TimestampMixin, Base):
     __tablename__ = 'dim_company'
 
     ucode = Column(String, primary_key=True)

@@ -1,12 +1,13 @@
 from sqlalchemy import Column, String, Float, Date, ForeignKey, BigInteger, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ...base import Base
+from ..group.timestamp import TimestampMixin
 
 # 팩트 테이블 (주가 데이터)
-class FactStockPrice(Base):
+class FactStockPrice(Base, TimestampMixin):
     __tablename__ = 'fact_stock_price'
 
-    ucode = Column(String, ForeignKey('dim_company.ucode'), primary_key=True)
+    ucode = Column(String, ForeignKey('dim_company.ucode'))
     date = Column(Date, nullable=False) # 년월일
     volume = Column(BigInteger, nullable=False) # 거래량
     price = Column(Float, nullable=False) # 주가

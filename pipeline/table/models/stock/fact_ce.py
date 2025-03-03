@@ -1,12 +1,13 @@
 from sqlalchemy import Column, String, Float, Date, ForeignKey, Numeric, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ...base import Base
+from ..group.timestamp import TimestampMixin
 
 # 자본 변동표 Statement of Changes in Equity
-class FactStockCE(Base):
+class FactStockCE(Base, TimestampMixin):
     __tablename__ = 'fact_stock_ce'
 
-    ucode = Column(String, ForeignKey('dim_company.ucode'), primary_key=True)
+    ucode = Column(String, ForeignKey('dim_company.ucode'))
     date = Column(Date, nullable=False) # 년월일
     dividend = Column(Float, nullable=False)  # 배당금
     share_issuance = Column(Numeric(21, 3), nullable=False)  # 자가 주식 발행
