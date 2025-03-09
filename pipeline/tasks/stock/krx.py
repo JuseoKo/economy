@@ -6,7 +6,7 @@ from pipeline.utils import preprocessing
 from pipeline.utils.default_request import Request
 from pipeline.tasks.common import ETL
 from pipeline.table.models.stock.dim_company import CompanyDimension
-from pipeline.table.models.stock.fact_stock import FactStock
+from pipeline.table.models.stock.fact_price import FactStockPrice
 from pipeline.table.base import DBConnection
 
 class KrxBase(ETL):
@@ -67,7 +67,7 @@ class StockList(KrxBase):
             }, inplace=True
         )
         data['ucode'] = data.apply(
-            lambda x: preprocessing.create_ucode(x["country"], "STOCK", x['isin']),
+            lambda x: preprocessing.create_ucode(x["country"], x['symbol']),
             axis=1
         )
         data = data[['security_type', 'country', 'is_yn', 'isin', 'kr_name', 'us_name', 'market', 'symbol', 'ucode']]
@@ -124,7 +124,7 @@ class StockPrice(KrxBase):
         # 1. 데이터 추가
         get_date = kwargs.get('params', {}).get('get_date', "20250221")
         data["ucode"] = data.apply(
-            lambda x: preprocessing.create_ucode("KR", "STOCK", x['ISU_CD']),
+            lambda x: preprocessing.create_ucode("KR", x['ISU_CD']),
             axis=1
         )
         data['date'] = get_date
@@ -153,7 +153,7 @@ class StockPrice(KrxBase):
         Returns: 저장된 상장사 목록
         """
         uniq = ["ucode"]
-        res = self.db.upserts(FactStock, data, uniq)
+        res = self.db.upserts(FactStockPrice, data, uniq)
         return res
 
 class StockShortBalance(KrxBase):

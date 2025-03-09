@@ -7,6 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import orm
 from sqlalchemy.dialects.postgresql import insert
+from contextlib import contextmanager
+
 
 Base = orm.declarative_base()
 
@@ -26,6 +28,20 @@ class DBConnection(metaclass=SingletonMeta):
         )
         self.session = self.sync_db()
 
+    @contextmanager
+    def session_scope(self):
+        """트랜잭션을 자동으로 관리하는 컨텍스트 매니저"""
+        session = self.session
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+
     def sync_db(self):
         """
         동기 DB 세션 반환
@@ -36,7 +52,18 @@ class DBConnection(metaclass=SingletonMeta):
     def inserts(self):
         pass
 
-    def upserts(self, table, data: pd.DataFrame, uniq_list: list, set_list: list = None) -> int:
+    def upserts(self, table, data: pd.DataFrame, uniq_list: list, set_list: list = None, fk_table: object = None, fk_col: str = None) -> int:
+        """
+
+        table: 테이블 객체
+        data : 적재할 데이터 프레임
+        uniq_list : 유니크키 목록
+        set_list : 업데이트할 컬럼 목록
+        fk_table : FK 지정된 테이블
+        fk_col : FK 지정된 컬럼
+
+
+        """
         if set_list is None:
             col = set(data.columns)
             set_ = {c: getattr(insert(table).excluded, c) for c in col - set(uniq_list)}
@@ -47,9 +74,9 @@ class DBConnection(metaclass=SingletonMeta):
             index_elements=uniq_list,  # 충돌 시 기준이 되는 컬럼
             set_=set_  # ucode를 제외한 모든 컬럼 업데이트
         )
-        res = self.session.execute(stmt)
-        self.session.commit()
-        return res.rowcount
+        with self.session_scope() as session:
+            res = session.execute(stmt)
+            return res.rowcount
 
     def deletes(self):
         pass
