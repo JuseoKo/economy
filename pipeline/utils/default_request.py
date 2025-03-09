@@ -1,4 +1,6 @@
 import requests
+from airflow.logging_config import log
+
 
 class Request(object):
 
@@ -37,5 +39,6 @@ class Request(object):
         res = requests.post(url, data=data, json=payload, headers=self.headers)
 
         if res.status_code != 200:
-            raise f"[CODE: {res.status_code}][URL: {url}] 데이터 수집에 오류가 발생했습니다. {res.text}"
+            log.error(f"[CODE: {res.status_code}][URL: {url}] 데이터 수집에 오류가 발생했습니다. {res.text}")
+            raise
         return res

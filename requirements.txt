@@ -3,6 +3,7 @@
 pandas==2.2.3
 black==23.3.0
 python-dotenv==1.0.1
+chardet==5.2.0
 
 # 테스트 라이브러리
 pytest==8.3.4
