@@ -9,12 +9,12 @@ class FactStockBS(Base, TimestampMixin):
 
     ucode = Column(String, ForeignKey('dim_company.ucode'))
     date = Column(Date, nullable=False) # 년월일
-    total_assets = Column(Numeric(21, 3), nullable=False)  # 자산 총계
-    total_liabilities = Column(Numeric(21, 3), nullable=False)  # 부채 총계
-    current_assets = Column(Numeric(21, 3), nullable=False)  # 유동자산
-    current_liabilities = Column(Numeric(21, 3), nullable=False)  # 유동부채
-    cash_and_cash_equivalents = Column(Numeric(21, 3), nullable=False)  # 현금성 자산
-    inventory = Column(Numeric(21, 3), nullable=False)  # 재고자산
+    assets = Column(Numeric(21, 3), nullable=True)  # 자산 총계
+    liabilities = Column(Numeric(21, 3), nullable=True)  # 부채 총계
+    current_assets = Column(Numeric(21, 3), nullable=True)  # 유동자산
+    current_liabilities = Column(Numeric(21, 3), nullable=True)  # 유동부채
+    cash_and_cash_equivalents = Column(Numeric(21, 3), nullable=True)  # 현금성 자산
+    inventory = Column(Numeric(21, 3), nullable=True)  # 재고자산
 
     company = relationship("CompanyDimension", back_populates="fact_stock_bs")
 
