@@ -1,0 +1,5 @@
+API_USER=api
+API_PASSWORD=api
+API_NAME=api
+API_HOST=localhost
+AIRFLOW_UID=5000
