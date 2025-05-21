@@ -1,12 +1,12 @@
 services:
-  api-db:
+  db:
     image: postgres:16.4
     environment:
       - POSTGRES_USER=api
       - POSTGRES_DB=api
       - POSTGRES_PASSWORD=api
     volumes:
-      - /root/vol/api-db:/var/lib/postgresql/data
+      - /home/mari/vol/db:/var/lib/postgresql/data
     healthcheck:
         test: [ "CMD", "pg_isready", "-U", "api" ]
         interval: 10s
@@ -15,19 +15,3 @@ services:
     ports:
       - "5432:5432"
     restart: always
-#  airflow-db:
-#    image: postgres:15.0
-#    environment:
-#      - POSTGRES_USER=${AIRFLOW_USER}
-#      - POSTGRES_DB=${AIRFLOW_NAME}
-#      - POSTGRES_PASSWORD=${AIRFLOW_PASSWORD}
-#    volumes:
-#      - ${AIRFLOW_DB_VOLUMES}:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD", "pg_isready", "-U", "airflow"]
-#      interval: 10s
-#      retries: 5
-#      start_period: 5s
-#    ports:
-#      - "5431:5432"
-#    restart: always
