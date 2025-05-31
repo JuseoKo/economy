@@ -4,6 +4,7 @@
 from table.models.stock.fact_bs import FactStockBS
 from table.models.stock.fact_cf import FactStockCF
 from table.models.stock.fact_pl import FactStockPL
+from table.models.other.dart_report_path import DartReportPath
 
 import time
 import pandas as pd
@@ -35,15 +36,11 @@ class DartBase(ETL):
         }
 
 
-# 재무재표 수집
-class DartPerFormance(DartBase):
-    """
-
-    """
+class DartPerformanceList(DartBase):
     def __init__(self):
         super().__init__()
 
-    def fetch_list(self, **kwargs):
+    def fetch(self, **kwargs):
         """
         수집할 재무재표 목록을 가져오는 함수
         """
@@ -54,7 +51,7 @@ class DartPerFormance(DartBase):
         return res
 
     @staticmethod
-    def extract(data: requests.Response, **kwargs):
+    def transform(data: requests.Response, **kwargs):
         """
         수집할 재무재표 목록을 추출하는 함수
         """
@@ -70,6 +67,22 @@ class DartPerFormance(DartBase):
 
         df = pd.DataFrame(data=datas, columns=["year", "period", "type", 'name'])
         return df
+
+    def load(self, data: pd.DataFrame):
+
+        uniq = ["year", "period", "type"]
+        res = self.db.upserts(DartReportPath, data, uniq)
+
+        return data
+
+
+class DartPerFormance(DartBase):
+    """
+    재무재표 데이터를 가져오는 클래스입니다.
+    DartPerformanceList 로 목록을 가져와야 정상적으로 실행이 가능합니다.
+    """
+    def __init__(self):
+        super().__init__()
 
     def _get_main_data(self, get_list: pd.DataFrame, i: int) -> requests.Response:
         params = {
@@ -97,11 +110,17 @@ class DartPerFormance(DartBase):
 
         return res_df
 
+    def get_fetch_data_list(self) -> pd.DataFrame:
+        """
+        수집할 데이터 정보를 가져오는 함수입니다.
+        :return:
+        """
+        self.db.selects()
+
     def fetch(self, get_list: pd.DataFrame) -> pd.DataFrame|list:
         """
         필요한 재무재표 목록을 수집하는 함수
         https://opendart.fss.or.kr/cmm/downloadFnlttZip.do?fl_nm=2024_1Q_BS_20250221162310.zip
-
         """
         df = pd.DataFrame()
         get_list = get_list[get_list['type'] != 'CE'][:12]
@@ -116,7 +135,6 @@ class DartPerFormance(DartBase):
             df = pd.concat([df, self._concat_data(res_list)], axis=0)
 
         return df
-
 
     def transform(self, data: pd.DataFrame, **kwargs):
         """
@@ -184,7 +202,6 @@ class DartPerFormance(DartBase):
         res_data = preprocessing.convert_numeric(list(target_columns.values()), res_data)
 
         return res_data
-
 
     def load(self, data: pd.DataFrame):
         """

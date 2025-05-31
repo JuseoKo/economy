@@ -6,7 +6,7 @@ services:
       - POSTGRES_DB=api
       - POSTGRES_PASSWORD=api
     volumes:
-      - /home/mari/vol/db:/var/lib/postgresql/data
+      - /home/root/vol/db:/var/lib/postgresql/data
     healthcheck:
         test: [ "CMD", "pg_isready", "-U", "api" ]
         interval: 10s

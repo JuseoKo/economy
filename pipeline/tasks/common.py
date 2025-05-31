@@ -28,11 +28,14 @@ class ETL(metaclass=SingletonMeta):
         """
         추출 - 변환 - 저장 실행 함수
         """
+        log.info(f" ⏳ [{title}] 데이터 수집 진행중..")
         fetch = self.fetch()
-        log.info(f" ✅ [{title}][Row: {len(fetch)}] 데이터 수집 완료 ")
 
+        log.info(f" ⏳ [{title}] 데이터 변환 진행중..")
         transform = self.transform(data=fetch)
-        log.info(f" ✅ [{title}][Row: {len(transform)}/{len(fetch)}] 데이터 변환 완료 ")
 
+        log.info(f" ⏳ [{title}][Row: {len(transform)}] 데이터 저장 진행중..")
         load = self.load(data=transform)
-        log.info(f" ✅ [{title}][Row: {load}/{len(transform)}] 데이터 저장 완료 ")
+
+        log.info(f" ✅ [{title}][Row: {len(load)}] 완료")
+        return transform

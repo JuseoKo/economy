@@ -89,7 +89,7 @@ class StockPrice(KrxBase):
     def __init__(self):
         super().__init__()
 
-    def fetch(self, **kwargs) -> pd.DataFrame:
+    def fetch(self, get_date: str = None, **kwargs) -> pd.DataFrame:
         """
         Returns: 원본 주가 목록
 
@@ -97,9 +97,12 @@ class StockPrice(KrxBase):
             **kwargs: Airflow를 위한 옵션
 
         Returns: 원본 상장사 목록
+        :param get_date: YYYYMMDD
         """
         # 1. 설정
-        get_date = kwargs.get('params', {}).get('get_date', "20250221")
+        if get_date is None:
+            get_date = "20250221"
+
         url = f"{self.url}comm/bldAttendant/getJsonData.cmd"
         payload = {
             "bld": "dbms/MDC/STAT/standard/MDCSTAT01501",
@@ -111,6 +114,7 @@ class StockPrice(KrxBase):
             "csvxls_isNo": "false"
         }
         self.headers.update({"Content-length": "111"})
+
         # 2. API 호출
         res = self.request.post(url=url, data=payload, headers=self.headers)
         # 3. 결과 반환
@@ -124,7 +128,7 @@ class StockPrice(KrxBase):
         # 1. 데이터 추가
         get_date = kwargs.get('params', {}).get('get_date', "20250221")
         data["ucode"] = data.apply(
-            lambda x: preprocessing.create_ucode("KR", x['ISU_CD']),
+            lambda x: preprocessing.create_ucode("KR", x['ISU_SRT_CD']),
             axis=1
         )
         data['date'] = get_date

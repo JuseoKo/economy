@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Date, ForeignKey, BigInteger, PrimaryKeyConstraint
+from sqlalchemy import Column, String, Float, Date, ForeignKey, BigInteger, UniqueConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ...base import Base
 from ..group.timestamp import TimestampMixin
@@ -18,5 +18,6 @@ class FactStockPrice(Base, TimestampMixin):
 
 
     __table_args__ = (
-        PrimaryKeyConstraint('ucode', 'date', name='pk_fact_stock_ucode_date'),
+        PrimaryKeyConstraint('ucode', name='pk_fact_stock_ucode_date'),
+        UniqueConstraint('ucode', 'date', name='uk_fact_stock_ucode_date'),
     )
