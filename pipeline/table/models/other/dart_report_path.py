@@ -9,8 +9,8 @@ class DartReportPath(TimestampMixin, Base):
     __tablename__ = 'dart_report_path'
 
     year = Column(String, primary_key=True)
-    period = Column(String, nullable=False) # 회사 이름
-    type = Column(String, nullable=False) # 회사 영문 이름
+    period = Column(String, primary_key=True) # 회사 이름
+    type = Column(String, primary_key=True) # 회사 영문 이름
     name = Column(String, nullable=False)  # ETF, ETN, 주식 여부
 
     __table_args__ = (

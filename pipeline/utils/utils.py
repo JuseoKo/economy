@@ -5,6 +5,7 @@ import io
 import pickle
 from typing import Any
 import pandas as pd
+import re
 import chardet
 
 def setings_env() -> None:
@@ -61,3 +62,16 @@ def load_pickle(path: str = "data.pkl") -> Any:
         loaded_data = pickle.load(f)
 
     return loaded_data
+
+def date_convert(date_str: str, convert_type: str) -> str:
+    """
+    날짜 형식 문자열 EX) YYYYMMDD를 여러 형식으로 변환해주는 함수입니다.
+    :param date_str: YYYYMMDD 또는 YYYY-MM-DD 형식의 날짜 문자열
+    :param convert_type: 각종 타입 입력 Ex : %y-%m-%d, %y%m%d, %y.%m.%d ... 등등
+    :return:
+    """
+    pattern = r"(\d{4})\D*(\d{2})\D*(\d{2})"
+    res = re.sub(pattern, r"\1,\2,\3", date_str).split(",")
+    year = re.search(r"%y(.*?)%m", convert_type).group(1)
+    month = re.search(r"%m(.*?)%d", convert_type).group(1)
+    return res[0] + year + res[1] + month + res[2]

@@ -7,7 +7,9 @@ from ..group.timestamp import TimestampMixin
 class FactStockCF(Base, TimestampMixin):
     __tablename__ = 'fact_stock_cf'
 
-    ucode = Column(String, ForeignKey('dim_company.ucode'))
+    # ucode = Column(String, ForeignKey('dim_company.ucode'))
+    ucode = Column(String, primary_key=True)
+    date = Column(Date, primary_key=True) # 년월일
     date = Column(Date, nullable=False) # 년월일
     beginning_cash_flow = Column(Numeric(21, 3), nullable=True)  # 기초 현금 및 현금성 자산
     end_cash_flow = Column(Numeric(21, 3), nullable=True)  # 기말 현금 및 현금성 자산
@@ -17,7 +19,7 @@ class FactStockCF(Base, TimestampMixin):
     exchange_rate_cash_flow = Column(Numeric(21, 3), nullable=True)  # 환율변동효과
 
 
-    company = relationship("CompanyDimension", back_populates="fact_stock_cf")
+    # company = relationship("CompanyDimension", back_populates="fact_stock_cf")
 
 
     __table_args__ = (

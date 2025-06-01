@@ -115,7 +115,9 @@ class DartPerFormance(DartBase):
         수집할 데이터 정보를 가져오는 함수입니다.
         :return:
         """
-        self.db.selects()
+        filters = {"year": "2025"}
+        df = self.db.selects(DartReportPath, filters)
+        return df
 
     def fetch(self, get_list: pd.DataFrame) -> pd.DataFrame|list:
         """
@@ -199,6 +201,7 @@ class DartPerFormance(DartBase):
         res_data = res_data[res_data['currency'] == 'KRW']
         res_data.drop(columns=['symbol', 'currency', 'column', 'name'], inplace=True)
         res_data.rename(columns=target_columns, inplace=True)
+        res_data['date'] = pd.to_datetime(res_data['date']).dt.date
         res_data = preprocessing.convert_numeric(list(target_columns.values()), res_data)
 
         return res_data
@@ -224,14 +227,14 @@ class DartPerFormance(DartBase):
         """
         추출 - 변환 - 저장 실행 함수
         """
-        fetch_list = self.fetch_list()
-        fetch_list = self.extract(data=fetch_list)
+        fetch_list = self.get_fetch_data_list()
+        log.info(f" ✅ [{title}][Row: {len(fetch_list)}] 수집 데이터 목록 조회 완료")
 
-        fetch = self.fetch(data=fetch_list)
+        fetch = self.fetch(fetch_list)
         log.info(f" ✅ [{title}][Row: {len(fetch)}] 데이터 수집 완료 ")
 
-        transform = self.transform(data=fetch)
+        transform = self.transform(fetch)
         log.info(f" ✅ [{title}][Row: {len(transform)}/{len(fetch)}] 데이터 변환 완료 ")
 
-        load = self.load(data=transform)
+        load = self.load(transform)
         log.info(f" ✅ [{title}][Row: {load}/{len(transform)}] 데이터 저장 완료 ")

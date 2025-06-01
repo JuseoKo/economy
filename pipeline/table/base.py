@@ -81,5 +81,36 @@ class DBConnection(metaclass=SingletonMeta):
     def deletes(self):
         pass
 
-    def selects(self):
-        pass
+    def selects(self, table, filters: dict):
+        """
+        데이터를 가져오는 함수
+        :param table: 테이블 객체
+        :param filters: 필터
+            ㄴ filters = {
+                'year': 2023,  # ==
+                'type': {'in': ['CFS', 'OFS']},  # IN
+                'period': {'like': 'Q%'},  # LIKE
+                'created_at': {'between': ['2023-01-01', '2023-12-31']},  # BETWEEN
+                'test1': {'ne': '1'},  # !=
+                'test1': {'lt': '1'},  # <
+                'test1': {'le': '1'},  # <=
+                'test1': {'gt': '1'},  # >
+                'test1': {'ge': '1'},  # >=
+            }
+        :return:
+        """
+        # 조건부 조회
+        res = self.session.query(table).filter_by(**filters).all()
+
+        rows = []
+
+        for obj in res:
+            # SQLAlchemy 내부 속성인 `_sa_instance_state`는 제거
+            row = {
+                k: v for k, v in vars(obj).items()
+                if not k.startswith('_')
+            }
+            rows.append(row)
+
+        df = pd.DataFrame(rows)
+        return df
