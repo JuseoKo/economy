@@ -182,7 +182,6 @@ class DartPerFormance(DartBase):
         data['symbol'] = data['symbol'].str.replace('[', '').str.replace(']', '')
 
         # 3. 데이터 피벗
-
         # 데이터 필터링 (필요한 컬럼만 선택)
         filtered_data = data[data["column"].isin(list(target_columns.keys()))].reset_index(drop=True)
         filtered_data = filtered_data.drop_duplicates(subset=[item for item in re_col.values() if item != 'value'])
@@ -212,16 +211,22 @@ class DartPerFormance(DartBase):
         """
         uniq = ["ucode", "date"]
 
-
         # 1. 재무 상태표 저장 (fact_stock_bs)
-        bs_col = ["assets", "liabilities", "current_assets", "current_liabilities", "cash_and_cash_equivalents", "inventory"]
-        res = self.db.upserts(FactStockBS, data[uniq + bs_col], uniq)
-        # 2. 현금 흐름표 저장 (fact_stock_cf)
-        res = self.db.upserts(FactStockCF, data, uniq)
-        # 3. 손익 개산서 저장 (fact_stock_pl)
-        res = self.db.upserts(FactStockPL, data, uniq)
+        bs_cols = ["assets", "liabilities", "current_assets", "current_liabilities", "cash_and_cash_equivalents", "inventory"]
+        bs_res = self.db.upserts(FactStockBS, data[uniq + bs_cols], uniq)
+        log.info(" 재무 상태표 저장 완료")
 
-        pass
+        # 2. 현금 흐름표 저장 (fact_stock_cf)
+        cf_cols = ["beginning_cash_flow", 'end_cash_flow', 'operating_cash_flow', 'investing_cash_flow', 'financing_cash_flow', 'exchange_rate_cash_flow']
+        cf_res = self.db.upserts(FactStockCF, data[uniq + cf_cols], uniq)
+        log.info(" 현금 흐름표 저장 완료")
+
+        # 3. 손익 계산서 저장 (fact_stock_pl)
+        pl_cols = ['revenue', 'operating_income_loss', 'profit_loss']
+        pl_res = self.db.upserts(FactStockPL, data[uniq + pl_cols], uniq)
+        log.info(" 손익 계산서 저장 완료")
+
+        return bs_res + cf_res + pl_res
 
     def run(self, title: str):
         """

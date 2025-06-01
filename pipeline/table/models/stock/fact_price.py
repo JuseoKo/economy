@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Date, ForeignKey, BigInteger, UniqueConstraint, PrimaryKeyConstraint
+from sqlalchemy import Column, String, Numeric, Date, ForeignKey, BigInteger, UniqueConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ...base import Base
 from ..group.timestamp import TimestampMixin
@@ -7,11 +7,12 @@ from ..group.timestamp import TimestampMixin
 class FactStockPrice(Base, TimestampMixin):
     __tablename__ = 'fact_stock_price'
 
-    ucode = Column(String, ForeignKey('dim_company.ucode'))
+    # ucode = Column(String, ForeignKey('dim_company.ucode'))
+    ucode = Column(String, primary_key=True)
     date = Column(Date, nullable=False) # 년월일
-    volume = Column(BigInteger, nullable=False) # 거래량
-    price = Column(Float, nullable=False) # 주가
-    mkt_cap = Column(Float, nullable=False) # 시가총액
+    volume = Column(Numeric(21, 0), nullable=False) # 거래량
+    price = Column(Numeric(21, 3), nullable=False) # 주가
+    mkt_cap = Column(Numeric(21, 3), nullable=False) # 시가총액
     list_shrs = Column(BigInteger, nullable=False) # 총 주식 수
 
     company = relationship("CompanyDimension", back_populates="fact_stock_price")

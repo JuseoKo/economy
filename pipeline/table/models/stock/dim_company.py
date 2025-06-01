@@ -18,7 +18,6 @@ class CompanyDimension(TimestampMixin, Base):
     is_yn = Column(String, nullable=False)  # 상장 여부 (예: 'Y' or 'N')
 
     # fact_stock_bs = relationship("FactStockBS", back_populates="company")
-    # fact_stock_ce = relationship("FactStockCE", back_populates="company")
     # fact_stock_cf = relationship("FactStockCF", back_populates="company")
     # fact_stock_pl = relationship("FactStockPL", back_populates="company")
     fact_stock_price = relationship("FactStockPrice", back_populates="company")

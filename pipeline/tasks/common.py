@@ -37,5 +37,5 @@ class ETL(metaclass=SingletonMeta):
         log.info(f" ⏳ [{title}][Row: {len(transform)}] 데이터 저장 진행중..")
         load = self.load(data=transform)
 
-        log.info(f" ✅ [{title}][Row: {len(load)}] 완료")
+        log.info(f" ✅ [{title}][Row: {load}] 저장 완료")
         return transform

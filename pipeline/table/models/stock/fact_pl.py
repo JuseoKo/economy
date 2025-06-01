@@ -10,9 +10,9 @@ class FactStockPL(Base, TimestampMixin):
     # ucode = Column(String, ForeignKey('dim_company.ucode'))
     ucode = Column(String, primary_key=True)
     date = Column(Date, primary_key=True) # 년월일
-    revenue = Column(Numeric(21, 3), nullable=True)  # 매출액
-    operating_income_loss = Column(Numeric(21, 3), nullable=True)  # 영업이익
-    profit_loss = Column(Numeric(21, 3), nullable=True)  # 순이익
+    revenue = Column(Numeric(21, 0), nullable=True)  # 매출액
+    operating_income_loss = Column(Numeric(21, 0), nullable=True)  # 영업이익
+    profit_loss = Column(Numeric(21, 0), nullable=True)  # 순이익
 
     # company = relationship("CompanyDimension", back_populates="fact_stock_pl")
 

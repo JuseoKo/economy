@@ -8,6 +8,7 @@ from pipeline.tasks.common import ETL
 from pipeline.table.models.stock.dim_company import CompanyDimension
 from pipeline.table.models.stock.fact_price import FactStockPrice
 from pipeline.table.base import DBConnection
+from pipeline.utils import utils
 
 class KrxBase(ETL):
     def __init__(self):
@@ -53,7 +54,7 @@ class StockList(KrxBase):
         """
         Returns: 처리된 상장사 목록
         """
-        data['security_type'] = "STOCK"
+        data['type'] = "STOCK"
         data['country'] = "KR"
         data['is_yn'] = 'Y'
 
@@ -70,7 +71,7 @@ class StockList(KrxBase):
             lambda x: preprocessing.create_ucode(x["country"], x['symbol']),
             axis=1
         )
-        data = data[['security_type', 'country', 'is_yn', 'isin', 'kr_name', 'us_name', 'market', 'symbol', 'ucode']]
+        data = data[['type', 'country', 'is_yn', 'isin', 'kr_name', 'us_name', 'market', 'symbol', 'ucode']]
         return data
 
     def load(self, data: pd.DataFrame):
@@ -131,7 +132,7 @@ class StockPrice(KrxBase):
             lambda x: preprocessing.create_ucode("KR", x['ISU_SRT_CD']),
             axis=1
         )
-        data['date'] = get_date
+        data['date'] = pd.to_datetime(get_date, format="%Y%m%d").date()
 
         # 2. 컬럼명 변경
         data.rename(
@@ -156,7 +157,7 @@ class StockPrice(KrxBase):
         """
         Returns: 저장된 상장사 목록
         """
-        uniq = ["ucode"]
+        uniq = ["ucode", "date"]
         res = self.db.upserts(FactStockPrice, data, uniq)
         return res
 

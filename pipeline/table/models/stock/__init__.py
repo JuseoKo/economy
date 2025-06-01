@@ -3,7 +3,6 @@ from .fact_price import FactStockPrice
 from .fact_short_balance import FactStockShortBalance
 from .fact_bs import FactStockBS
 from .fact_pl import FactStockPL
-from .fact_ce import FactStockCE
 from .fact_cf import FactStockCF
 
 __all__ = [
@@ -12,6 +11,5 @@ __all__ = [
     "FactStockShortBalance",
     "FactStockBS",
     "FactStockPL",
-    "FactStockCE",
     "FactStockCF",
 ]
