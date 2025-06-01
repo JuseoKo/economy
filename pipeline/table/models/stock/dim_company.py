@@ -20,6 +20,6 @@ class CompanyDimension(TimestampMixin, Base):
     # fact_stock_bs = relationship("FactStockBS", back_populates="company")
     # fact_stock_cf = relationship("FactStockCF", back_populates="company")
     # fact_stock_pl = relationship("FactStockPL", back_populates="company")
-    fact_stock_price = relationship("FactStockPrice", back_populates="company")
+    # fact_stock_price = relationship("FactStockPrice", back_populates="company")
     fact_stock_short_balance = relationship("FactStockShortBalance", back_populates="company")
     # fact_stock_short_seller = relationship("FactStockShortSeller", back_populates="company")

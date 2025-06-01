@@ -15,7 +15,7 @@ class FactStockPrice(Base, TimestampMixin):
     mkt_cap = Column(Numeric(21, 3), nullable=False) # 시가총액
     list_shrs = Column(BigInteger, nullable=False) # 총 주식 수
 
-    company = relationship("CompanyDimension", back_populates="fact_stock_price")
+    # company = relationship("CompanyDimension", back_populates="fact_stock_price")
 
 
     __table_args__ = (

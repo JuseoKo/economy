@@ -73,7 +73,7 @@ class DartPerformanceList(DartBase):
         uniq = ["year", "period", "type"]
         res = self.db.upserts(DartReportPath, data, uniq)
 
-        return data
+        return res
 
 
 class DartPerFormance(DartBase):
