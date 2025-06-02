@@ -16,9 +16,8 @@ T : ice burg(원본) -> Ice Burg(처리)
 
 MCP 설정
 ### 1. node.js v18 + 설치
-- apt install node -v
-- sudo npm install -g n
-- sudo n lts
+- apt insatll nodejs
+- node -v
 
 ### 2. npm 설치
 - apt install npm 
