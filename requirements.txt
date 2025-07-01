@@ -1,8 +1,7 @@
-# Python 3.12.0
+# Python 3.12.10
 # 데이터 처리
 pandas==2.2.3
-black==23.3.0
-python-dotenv==1.0.1
+python-dotenv==1.1.0
 chardet==5.2.0
 
 # 테스트 라이브러리
@@ -23,4 +22,8 @@ requests==2.32.3
 beautifulsoup4==4.12.2
 
 # 기타
-black==23.3.0
+black==24.4.2
+
+
+# fastmcp
+fastmcp==2.9.2

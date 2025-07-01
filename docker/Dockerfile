@@ -7,4 +7,5 @@ WORKDIR /opt/airflow
 # 상위 디렉토리의 requirements.txt를 복사
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install uv
+RUN uv pip install --no-cache-dir -r requirements.txt
