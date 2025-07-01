@@ -1,38 +1,28 @@
-
-아키텍쳐 1
-
-E : API수집 Postgresql(원본)
-L : Postgresql저장(원본)
-T : Postgresql(원본) -> Postgresql(처리)
-사용기술 : Airflow / Postgresql / polars
-
-아키텍쳐 2
-
-E : API수집 ice burg(원본)
-L : ice burg저장(원본)
-T : ice burg(원본) -> Ice Burg(처리)
-사용기술 : Airflow / Ice Burg / Spark / Minio
-
-
 MCP 설정
-### 1. node.js v18 + 설치
-- apt insatll nodejs
-- node -v
+### 1. node.js v20 + 설치
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
 
-### 2. npm 설치
-- apt install npm 
+### 2. node 버전 확인
+node -v   # → v18.x
+npm -v    # → v8.x 이상
 
-### 3. Pycharm 플러그인 설치
-- Ai Assistant
-- MCP Server
+### 3. Gemini CLI 설치
+sudo npm install -g @google/gemini-cli
 
-### 4. MCP 서버 구성
-항목	값
-- Name: 자유
-- Command: npx
-- Arguments: -y @jetbrains/mcp-proxy
-- Environment: Variables	없음 (또는 필요한 경우 IDE_PORT=63342 등 지정 가능)
-- Working Directory: 프로젝트 루트 or /tmp
+### 4. Gemini 실행
+gemini 
 
-### 5. 서버 동작 확인
-- HOST=0.0.0.0 npx -y @jetbrains/mcp-proxy
+### 5. MCP 서버 연결 설정
+sudo nano ~/.gemini/settings.json
+
+{
+  "theme": "Atom One",
+  "selectedAuthType": "oauth-personal",
+  "mcpServers": {
+    "httpServer": {
+      "httpUrl": "http://localhost:3000/mcp",
+      "timeout": 5000
+    }
+  }
+}
