@@ -1,4 +1,4 @@
-FROM apache/airflow:2.9.3-python3.12
+FROM apache/airflow:2.10.5-python3.12
 
 #COPY .env .
 #COPY requirements.txt .
