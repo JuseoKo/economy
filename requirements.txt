@@ -3,6 +3,7 @@
 pandas==2.2.3
 python-dotenv==1.1.0
 chardet==5.2.0
+pyarrow==15.0.0  # For Parquet file support
 
 # 테스트 라이브러리
 pytest==8.3.4
