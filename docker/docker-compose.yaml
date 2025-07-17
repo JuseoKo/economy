@@ -224,16 +224,3 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-
-  mcp:
-    container_name: mcp
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    command: python /app/mcp/main.py
-    ports:
-      - "3000:3000"
-    volumes:
-      - ../mcp:/app/mcp
-
-
