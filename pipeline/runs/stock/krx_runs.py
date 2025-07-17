@@ -7,4 +7,3 @@ def stock_list_run():
 
 def stock_price_run():
     krx.StockPrice().run("KRX 주가 목록 수집")
-

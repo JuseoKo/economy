@@ -1,4 +1,3 @@
-
 import pendulum
 
 from airflow.models.dag import DAG
@@ -16,7 +15,7 @@ with DAG(
 
     - DART에서 재무제표 목록을 가져와서 데이터베이스에 저장합니다.
     - 저장된 목록을 기반으로 재무제표 데이터를 수집하고 처리하여 저장합니다.
-    """
+    """,
 ) as dag:
     dart_performance_list = DartPerformanceList()
     dart_performance = DartPerFormance()
@@ -29,7 +28,7 @@ with DAG(
     dart_performance_task = PythonOperator(
         task_id="dart_performance_task",
         python_callable=dart_performance.run,
-        op_kwargs={'title': 'DART 재무제표'}
+        op_kwargs={"title": "DART 재무제표"},
     )
 
     dart_performance_list_task >> dart_performance_task

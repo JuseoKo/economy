@@ -1,6 +1,7 @@
 """
 데이터 소스 http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
 """
+
 import pandas as pd
 from pipeline.utils import preprocessing
 from pipeline.utils.default_request import Request
@@ -9,6 +10,7 @@ from pipeline.table.models.stock.dim_company import CompanyDimension
 from pipeline.table.models.stock.fact_price import FactStockPrice
 from pipeline.table.base import DBConnection
 from pipeline.utils.datalake import DataLake, DataSource, EndPoint
+
 
 class KrxBase(ETL):
     def __init__(self):
@@ -26,11 +28,13 @@ class KrxBase(ETL):
             "Referer": "http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?",
         }
 
+
 class StockList(KrxBase):
     """
     KRX의 주식 목록을 가져오는 클래스
     http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC02030101
     """
+
     def __init__(self):
         super().__init__()
 
@@ -44,22 +48,20 @@ class StockList(KrxBase):
             "locale": "ko_KR",
             "mktId": "ALL",
             "share": "1",
-            "csvxls_isNo": "false"
+            "csvxls_isNo": "false",
         }
         self.headers.update({"Content-length": "88"})
         res = self.request.post(url=url, data=payload, headers=self.headers)
 
         # API 호출 결과를 DataFrame으로 변환
-        data = pd.DataFrame(res.json()['OutBlock_1'])
+        data = pd.DataFrame(res.json()["OutBlock_1"])
 
         # data lake 저장
         from datetime import datetime
+
         date = datetime.now().strftime("%Y%m%d")
         DataLake.save_to_datalake(
-            data=data,
-            endpoint=EndPoint.STOCK_LIST,
-            source=DataSource.KRX,
-            date=date
+            data=data, endpoint=EndPoint.STOCK_LIST, source=DataSource.KRX, date=date
         )
 
         return data
@@ -74,17 +76,16 @@ class StockList(KrxBase):
         # 데이터가 없으면 데이터 레이크에서 로드
         if data is None:
             from datetime import datetime
-            date = kwargs.get('date', datetime.now().strftime("%Y%m%d"))
+
+            date = kwargs.get("date", datetime.now().strftime("%Y%m%d"))
             data = DataLake.load_from_datalake(
-                endpoint=EndPoint.STOCK_LIST,
-                source=DataSource.KRX,
-                date=date
+                endpoint=EndPoint.STOCK_LIST, source=DataSource.KRX, date=date
             )
 
         # 데이터 변환
-        data['type'] = "STOCK"
-        data['country'] = "KR"
-        data['is_yn'] = 'Y'
+        data["type"] = "STOCK"
+        data["country"] = "KR"
+        data["is_yn"] = "Y"
 
         data.rename(
             columns={
@@ -92,14 +93,26 @@ class StockList(KrxBase):
                 "ISU_NM": "kr_name",
                 "ISU_ENG_NM": "us_name",
                 "MKT_TP_NM": "market",
-                "ISU_SRT_CD": "symbol"
-            }, inplace=True
+                "ISU_SRT_CD": "symbol",
+            },
+            inplace=True,
         )
-        data['ucode'] = data.apply(
-            lambda x: preprocessing.create_ucode(x["country"], x['symbol']),
-            axis=1
+        data["ucode"] = data.apply(
+            lambda x: preprocessing.create_ucode(x["country"], x["symbol"]), axis=1
         )
-        data = data[['type', 'country', 'is_yn', 'isin', 'kr_name', 'us_name', 'market', 'symbol', 'ucode']]
+        data = data[
+            [
+                "type",
+                "country",
+                "is_yn",
+                "isin",
+                "kr_name",
+                "us_name",
+                "market",
+                "symbol",
+                "ucode",
+            ]
+        ]
         return data
 
     def load(self, data: pd.DataFrame):
@@ -112,11 +125,13 @@ class StockList(KrxBase):
         res = self.db.upserts(CompanyDimension, data, uniq)
         return res
 
+
 class StockPrice(KrxBase):
     """
     KRX의 주가를 가져오는 클래스
     http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC02030101
     """
+
     def __init__(self):
         super().__init__()
 
@@ -130,6 +145,7 @@ class StockPrice(KrxBase):
         # 1. 설정
         if get_date is None:
             from datetime import datetime
+
             get_date = datetime.now().strftime("%Y%m%d")
 
         url = f"{self.url}comm/bldAttendant/getJsonData.cmd"
@@ -140,7 +156,7 @@ class StockPrice(KrxBase):
             "mktId": "ALL",
             "share": "1",
             "money": "1",
-            "csvxls_isNo": "false"
+            "csvxls_isNo": "false",
         }
         self.headers.update({"Content-length": "111"})
 
@@ -148,14 +164,14 @@ class StockPrice(KrxBase):
         res = self.request.post(url=url, data=payload, headers=self.headers)
 
         # 3. 결과를 DataFrame으로 변환
-        data = pd.DataFrame(res.json()['OutBlock_1'])
+        data = pd.DataFrame(res.json()["OutBlock_1"])
 
         # 4. 데이터 레이크에 저장
         DataLake.save_to_datalake(
             data=data,
             endpoint=EndPoint.STOCK_PRICE,
             source=DataSource.KRX,
-            date=get_date
+            date=get_date,
         )
 
         # 5. 결과 반환
@@ -170,28 +186,27 @@ class StockPrice(KrxBase):
         """
         # 데이터가 없으면 데이터 레이크에서 로드
         if data is None:
-            get_date = kwargs.get('params', {}).get('get_date')
+            get_date = kwargs.get("params", {}).get("get_date")
             if get_date is None:
                 from datetime import datetime
+
                 get_date = datetime.now().strftime("%Y%m%d")
 
             data = DataLake.load_from_datalake(
-                endpoint=EndPoint.STOCK_PRICE,
-                source=DataSource.KRX,
-                date=get_date
+                endpoint=EndPoint.STOCK_PRICE, source=DataSource.KRX, date=get_date
             )
 
         # 1. 데이터 추가
-        get_date = kwargs.get('params', {}).get('get_date')
+        get_date = kwargs.get("params", {}).get("get_date")
         if get_date is None:
             from datetime import datetime
+
             get_date = datetime.now().strftime("%Y%m%d")
 
         data["ucode"] = data.apply(
-            lambda x: preprocessing.create_ucode("KR", x['ISU_SRT_CD']),
-            axis=1
+            lambda x: preprocessing.create_ucode("KR", x["ISU_SRT_CD"]), axis=1
         )
-        data['date'] = pd.to_datetime(get_date, format="%Y%m%d").date()
+        data["date"] = pd.to_datetime(get_date, format="%Y%m%d").date()
 
         # 2. 컬럼명 변경
         data.rename(
@@ -201,7 +216,7 @@ class StockPrice(KrxBase):
                 "ACC_TRDVOL": "volume",
                 "LIST_SHRS": "list_shrs",
             },
-            inplace=True
+            inplace=True,
         )
 
         # 3. 전처리 (, 제거 )
@@ -222,11 +237,13 @@ class StockPrice(KrxBase):
         res = self.db.upserts(FactStockPrice, data, uniq)
         return res
 
+
 class StockShortBalance(KrxBase):
     """
     KRX의 공매도 잔고 데이터를 가져오는 클래스
     http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC02030301
     """
+
     def __init__(self):
         super().__init__()
 

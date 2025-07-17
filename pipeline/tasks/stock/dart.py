@@ -1,6 +1,7 @@
 """
 데이터 소스 http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
 """
+
 from table.models.stock.fact_bs import FactStockBS
 from table.models.stock.fact_cf import FactStockCF
 from table.models.stock.fact_pl import FactStockPL
@@ -45,8 +46,7 @@ class DartPerformanceList(DartBase):
         수집할 재무재표 목록을 가져오는 함수
         """
         res = self.request.post(
-            url=self.url + "disclosureinfo/fnltt/dwld/list.do",
-            headers=self.headers
+            url=self.url + "disclosureinfo/fnltt/dwld/list.do", headers=self.headers
         )
         return res
 
@@ -65,11 +65,10 @@ class DartPerformanceList(DartBase):
             parsing_data = re.findall(r"'(.*?)'", data.get("onclick"))
             datas.append(parsing_data)
 
-        df = pd.DataFrame(data=datas, columns=["year", "period", "type", 'name'])
+        df = pd.DataFrame(data=datas, columns=["year", "period", "type", "name"])
         return df
 
     def load(self, data: pd.DataFrame):
-
         uniq = ["year", "period", "type"]
         res = self.db.upserts(DartReportPath, data, uniq)
 
@@ -81,13 +80,12 @@ class DartPerFormance(DartBase):
     재무재표 데이터를 가져오는 클래스입니다.
     DartPerformanceList 로 목록을 가져와야 정상적으로 실행이 가능합니다.
     """
+
     def __init__(self):
         super().__init__()
 
     def _get_main_data(self, get_list: pd.DataFrame, i: int) -> requests.Response:
-        params = {
-            "fl_nm": get_list.iloc[i]['name']
-        }
+        params = {"fl_nm": get_list.iloc[i]["name"]}
         url = self.url + "/cmm/downloadFnlttZip.do"
         res = self.request.get(url, params=params, headers=self.headers)
         time.sleep(3)
@@ -98,11 +96,10 @@ class DartPerFormance(DartBase):
     def _concat_data(res_list: list) -> pd.DataFrame:
         res_df = pd.DataFrame()
         for j in range(len(res_list)):
-
             # 연결 재무제표만 추출
-            if "연결" in res_list[j]['name']:
+            if "연결" in res_list[j]["name"]:
                 # 텍스트 데이터를 io.StringIO를 이용하여 파일처럼 읽기
-                text_io = io.StringIO(res_list[j]['data'])
+                text_io = io.StringIO(res_list[j]["data"])
 
                 # DataFrame 변환 (탭 '\t'을 구분자로 설정)
                 df = pd.read_csv(text_io, delimiter="\t", header=None, skiprows=1)
@@ -119,19 +116,21 @@ class DartPerFormance(DartBase):
         df = self.db.selects(DartReportPath, filters)
         return df
 
-    def fetch(self, get_list: pd.DataFrame) -> pd.DataFrame|list:
+    def fetch(self, get_list: pd.DataFrame) -> pd.DataFrame | list:
         """
         필요한 재무재표 목록을 수집하는 함수
         https://opendart.fss.or.kr/cmm/downloadFnlttZip.do?fl_nm=2024_1Q_BS_20250221162310.zip
         """
         df = pd.DataFrame()
-        get_list = get_list[get_list['type'] != 'CE'][:12]
+        get_list = get_list[get_list["type"] != "CE"][:12]
         for i in range(len(get_list)):
             # 1. 데이터 수집
             response = self._get_main_data(get_list, i)
 
             # 2. zip 파일에서 데이터 추출
-            res_list = utils.load_zip_file_to_text(io.BytesIO(response.content), "CP949")
+            res_list = utils.load_zip_file_to_text(
+                io.BytesIO(response.content), "CP949"
+            )
 
             # 3. 데이터 concat
             df = pd.concat([df, self._concat_data(res_list)], axis=0)
@@ -146,13 +145,13 @@ class DartPerFormance(DartBase):
         """
         # 1. 컬럼명 수정
         re_col = {
-                1: "symbol",
-                7: "date",
-                9: "currency",
-                10: "column",
-                11: "name",
-                12: "value"
-            }
+            1: "symbol",
+            7: "date",
+            9: "currency",
+            10: "column",
+            11: "name",
+            12: "value",
+        }
 
         # 피벗할 특정 컬럼 리스트
         target_columns = {
@@ -169,39 +168,51 @@ class DartPerFormance(DartBase):
             "ifrs-full_Liabilities": "liabilities",  # 부채총계
             "ifrs-full_CurrentAssets": "current_assets",  # 유동자산
             "ifrs-full_CurrentLiabilities": "current_liabilities",  # 유동부채
-            "ifrs-full_CashAndCashEquivalents": "cash_and_cash_equivalents", # 현금및현금성자산
+            "ifrs-full_CashAndCashEquivalents": "cash_and_cash_equivalents",  # 현금및현금성자산
             "ifrs-full_Inventories": "inventory",  # 재고자산
         }
 
-        data = data.rename(
-            columns=re_col
-        )
+        data = data.rename(columns=re_col)
         # 2. 필요한 컬럼만 선택 및 데이터 전처리
         data = data[list(re_col.values())]
-        data = data[data['symbol'] != '[null]']
-        data['symbol'] = data['symbol'].str.replace('[', '').str.replace(']', '')
+        data = data[data["symbol"] != "[null]"]
+        data["symbol"] = data["symbol"].str.replace("[", "").str.replace("]", "")
 
         # 3. 데이터 피벗
         # 데이터 필터링 (필요한 컬럼만 선택)
-        filtered_data = data[data["column"].isin(list(target_columns.keys()))].reset_index(drop=True)
-        filtered_data = filtered_data.drop_duplicates(subset=[item for item in re_col.values() if item != 'value'])
+        filtered_data = data[
+            data["column"].isin(list(target_columns.keys()))
+        ].reset_index(drop=True)
+        filtered_data = filtered_data.drop_duplicates(
+            subset=[item for item in re_col.values() if item != "value"]
+        )
 
         # 특정 컬럼만 피벗
         pivot_data = filtered_data.pivot_table(
-            index=[item for item in re_col.values() if item != 'value'],
+            index=[item for item in re_col.values() if item != "value"],
             columns="column",
             values="value",
-            aggfunc='first'  # 'firse'가 아니라 'first'가 올바른 표현입니다.
+            aggfunc="first",  # 'firse'가 아니라 'first'가 올바른 표현입니다.
         ).reset_index()
-        res_data = pivot_data.groupby(by=['symbol', 'date', 'currency']).first().reset_index()
+        res_data = (
+            pivot_data.groupby(by=["symbol", "date", "currency"]).first().reset_index()
+        )
 
         # 4. 최종 전처리
-        res_data['ucode'] = res_data.apply(lambda x: preprocessing.create_ucode("KR", x['symbol'], ), axis=1)
-        res_data = res_data[res_data['currency'] == 'KRW']
-        res_data.drop(columns=['symbol', 'currency', 'column', 'name'], inplace=True)
+        res_data["ucode"] = res_data.apply(
+            lambda x: preprocessing.create_ucode(
+                "KR",
+                x["symbol"],
+            ),
+            axis=1,
+        )
+        res_data = res_data[res_data["currency"] == "KRW"]
+        res_data.drop(columns=["symbol", "currency", "column", "name"], inplace=True)
         res_data.rename(columns=target_columns, inplace=True)
-        res_data['date'] = pd.to_datetime(res_data['date']).dt.date
-        res_data = preprocessing.convert_numeric(list(target_columns.values()), res_data)
+        res_data["date"] = pd.to_datetime(res_data["date"]).dt.date
+        res_data = preprocessing.convert_numeric(
+            list(target_columns.values()), res_data
+        )
 
         return res_data
 
@@ -212,17 +223,31 @@ class DartPerFormance(DartBase):
         uniq = ["ucode", "date"]
 
         # 1. 재무 상태표 저장 (fact_stock_bs)
-        bs_cols = ["assets", "liabilities", "current_assets", "current_liabilities", "cash_and_cash_equivalents", "inventory"]
+        bs_cols = [
+            "assets",
+            "liabilities",
+            "current_assets",
+            "current_liabilities",
+            "cash_and_cash_equivalents",
+            "inventory",
+        ]
         bs_res = self.db.upserts(FactStockBS, data[uniq + bs_cols], uniq)
         log.info(" 재무 상태표 저장 완료")
 
         # 2. 현금 흐름표 저장 (fact_stock_cf)
-        cf_cols = ["beginning_cash_flow", 'end_cash_flow', 'operating_cash_flow', 'investing_cash_flow', 'financing_cash_flow', 'exchange_rate_cash_flow']
+        cf_cols = [
+            "beginning_cash_flow",
+            "end_cash_flow",
+            "operating_cash_flow",
+            "investing_cash_flow",
+            "financing_cash_flow",
+            "exchange_rate_cash_flow",
+        ]
         cf_res = self.db.upserts(FactStockCF, data[uniq + cf_cols], uniq)
         log.info(" 현금 흐름표 저장 완료")
 
         # 3. 손익 계산서 저장 (fact_stock_pl)
-        pl_cols = ['revenue', 'operating_income_loss', 'profit_loss']
+        pl_cols = ["revenue", "operating_income_loss", "profit_loss"]
         pl_res = self.db.upserts(FactStockPL, data[uniq + pl_cols], uniq)
         log.info(" 손익 계산서 저장 완료")
 

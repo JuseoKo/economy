@@ -24,7 +24,7 @@ class DBConnection(metaclass=SingletonMeta):
 
         # 동기 엔진
         self.sync_engine = create_engine(
-            f'postgresql+psycopg2://{os.getenv("API_USER")}:{os.getenv("API_PASSWORD")}@{os.getenv("API_HOST")}:5432/{os.getenv("API_NAME")}'
+            f"postgresql+psycopg2://{os.getenv('API_USER')}:{os.getenv('API_PASSWORD')}@{os.getenv('API_HOST')}:5432/{os.getenv('API_NAME')}"
         )
         self.session = self.sync_db()
 
@@ -41,7 +41,6 @@ class DBConnection(metaclass=SingletonMeta):
         finally:
             session.close()
 
-
     def sync_db(self):
         """
         동기 DB 세션 반환
@@ -52,7 +51,15 @@ class DBConnection(metaclass=SingletonMeta):
     def inserts(self):
         pass
 
-    def upserts(self, table, data: pd.DataFrame, uniq_list: list, set_list: list = None, fk_table: object = None, fk_col: str = None) -> int:
+    def upserts(
+        self,
+        table,
+        data: pd.DataFrame,
+        uniq_list: list,
+        set_list: list = None,
+        fk_table: object = None,
+        fk_col: str = None,
+    ) -> int:
         """
 
         table: 테이블 객체
@@ -70,9 +77,13 @@ class DBConnection(metaclass=SingletonMeta):
         else:
             set_ = {c: getattr(insert(table).excluded, c) for c in set_list}
 
-        stmt = insert(table).values(data.to_dict("records")).on_conflict_do_update(
-            index_elements=uniq_list,  # 충돌 시 기준이 되는 컬럼
-            set_=set_  # ucode를 제외한 모든 컬럼 업데이트
+        stmt = (
+            insert(table)
+            .values(data.to_dict("records"))
+            .on_conflict_do_update(
+                index_elements=uniq_list,  # 충돌 시 기준이 되는 컬럼
+                set_=set_,  # ucode를 제외한 모든 컬럼 업데이트
+            )
         )
         with self.session_scope() as session:
             res = session.execute(stmt)
@@ -106,10 +117,7 @@ class DBConnection(metaclass=SingletonMeta):
 
         for obj in res:
             # SQLAlchemy 내부 속성인 `_sa_instance_state`는 제거
-            row = {
-                k: v for k, v in vars(obj).items()
-                if not k.startswith('_')
-            }
+            row = {k: v for k, v in vars(obj).items() if not k.startswith("_")}
             rows.append(row)
 
         df = pd.DataFrame(rows)

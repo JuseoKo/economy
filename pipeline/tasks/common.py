@@ -2,23 +2,24 @@ from pipeline.utils.meta_class import SingletonMeta
 from airflow.logging_config import log
 import pandas as pd
 
+
 class ETL(metaclass=SingletonMeta):
     def __init__(self):
         pass
 
-    def fetch(self, **kwargs) -> pd.DataFrame|list:
+    def fetch(self, **kwargs) -> pd.DataFrame | list:
         """
         데이터 수집(추출)
         """
         pass
 
-    def load(self, **kwargs) -> pd.DataFrame|list:
+    def load(self, **kwargs) -> pd.DataFrame | list:
         """
         저장
         """
         pass
 
-    def transform(self, **kwargs) -> pd.DataFrame|list:
+    def transform(self, **kwargs) -> pd.DataFrame | list:
         """
         변환
         """

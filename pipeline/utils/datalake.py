@@ -9,6 +9,7 @@ class DataSource(Enum):
     """
     데이터 소스 Eunm
     """
+
     KRX = "krx"
     DART = "dart"
 
@@ -17,6 +18,7 @@ class EndPoint(Enum):
     """
     저장시 사용하는 EndPoint Enum
     """
+
     STOCK_LIST = "stock_list"
     STOCK_PRICE = "stock_price"
     SHORT_BALANCE = "short_balance"
@@ -26,6 +28,7 @@ class DataLake:
     """
     DataLake 저장 클래스
     """
+
     BASE_PATH = "datalake"
 
     @staticmethod
@@ -38,18 +41,15 @@ class DataLake:
         :return:
         """
         return os.path.join(
-            DataLake.BASE_PATH,
-            date,
-            endpoint.value,
-            f"{source.value}.parquet"
+            DataLake.BASE_PATH, date, endpoint.value, f"{source.value}.parquet"
         )
 
     @staticmethod
     def save_to_datalake(
-            data: pd.DataFrame,
-            endpoint: EndPoint,
-            source: DataSource,
-            date: Optional[str] = None
+        data: pd.DataFrame,
+        endpoint: EndPoint,
+        source: DataSource,
+        date: Optional[str] = None,
     ) -> str:
         """
         Parquet 포맷 으로 데이터 저장
@@ -74,9 +74,7 @@ class DataLake:
 
     @staticmethod
     def load_from_datalake(
-            endpoint: EndPoint,
-            source: DataSource,
-            date: Optional[str] = None
+        endpoint: EndPoint, source: DataSource, date: Optional[str] = None
     ) -> pd.DataFrame:
         """
         DataLake 데이터 로드
