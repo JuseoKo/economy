@@ -4,7 +4,6 @@ import zipfile
 import io
 import pickle
 from typing import Any
-import pandas as pd
 import re
 import chardet
 
