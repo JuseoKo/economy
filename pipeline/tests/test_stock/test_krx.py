@@ -8,7 +8,7 @@ pipeline.tasks.stock.krx 모듈에 대한 테스트입니다.
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from pipeline.tasks.stock.krx import StockList, StockPrice
+from tasks.stock.krx import StockList, StockPrice
 
 
 # Test data fixtures

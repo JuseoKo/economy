@@ -1,4 +1,4 @@
-from pipeline.tasks.stock import krx
+from tasks.stock import krx
 
 
 def stock_list_run():

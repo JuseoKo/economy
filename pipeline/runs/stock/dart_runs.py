@@ -1,4 +1,4 @@
-from pipeline.tasks.stock import dart
+from tasks.stock import dart
 
 
 def dart_performance_list_run():

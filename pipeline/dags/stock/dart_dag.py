@@ -1,15 +1,15 @@
 import pendulum
 
 from airflow.models.dag import DAG
-from airflow.providers.standard.operators.python import PythonOperator
-from pipeline.tasks.stock.dart import DartPerformanceList, DartPerFormance
+from airflow.operators.python import PythonOperator
+from tasks.stock.dart import DartPerformanceList, DartPerFormance
 
 with DAG(
     dag_id="dart_performance",
     schedule="0 18 * * *",
     start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Seoul"),
     catchup=False,
-    tags={"stock", "dart"},
+    tags=["stock", "dart"],
     doc_md="""
     ### DART 재무제표 DAG
 

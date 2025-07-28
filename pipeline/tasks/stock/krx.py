@@ -3,13 +3,13 @@
 """
 
 import pandas as pd
-from pipeline.utils import preprocessing
-from pipeline.utils.default_request import Request
-from pipeline.tasks.common import ETL
-from pipeline.table.models.stock.dim_company import CompanyDimension
-from pipeline.table.models.stock.fact_price import FactStockPrice
-from pipeline.table.base import DBConnection
-from pipeline.utils.datalake import DataLake, DataSource, EndPoint
+from utils import preprocessing
+from utils.default_request import Request
+from tasks.common import ETL
+from table.models.stock.dim_company import CompanyDimension
+from table.models.stock.fact_price import FactStockPrice
+from table.base import DBConnection
+from utils.datalake import DataLake, DataSource, EndPoint
 
 
 class KrxBase(ETL):
