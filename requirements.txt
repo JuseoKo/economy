@@ -15,7 +15,7 @@ alembic==1.14.0
 sqlalchemy==1.4.53
 
 # airflow 라이브러리
-apache-airflow==2.10.5
+apache-airflow==3.0.3
 
 # 데이터 수집
 yfinance==0.2.38
