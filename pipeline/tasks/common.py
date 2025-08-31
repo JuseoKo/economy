@@ -1,25 +1,31 @@
+from typing import Any
 from pipeline.utils.meta_class import SingletonMeta
 from airflow.logging_config import log
-import pandas as pd
 
 
-class ETL(metaclass=SingletonMeta):
+class ELT(metaclass=SingletonMeta):
     def __init__(self):
         pass
 
-    def fetch(self, **kwargs) -> pd.DataFrame | list:
+    def _load_to_datalake(self, **kwargs) -> Any:
+        """
+        DB 저장
+        """
+        pass
+
+    def _load_to_db(self, **kwargs) -> Any:
+        """
+        DB 저장
+        """
+        pass
+
+    def fetch(self, **kwargs) -> Any:
         """
         데이터 수집(추출)
         """
         pass
 
-    def load(self, **kwargs) -> pd.DataFrame | list:
-        """
-        저장
-        """
-        pass
-
-    def transform(self, **kwargs) -> pd.DataFrame | list:
+    def transform(self, **kwargs) -> Any:
         """
         변환
         """
@@ -27,16 +33,13 @@ class ETL(metaclass=SingletonMeta):
 
     def run(self, title: str, **kwargs):
         """
-        추출 - 변환 - 저장 실행 함수
+        ELT 실행 함수
         """
         log.info(f" ⏳ [{title}] 데이터 수집 진행중..")
-        fetch = self.fetch(**kwargs)
+        load_cnt = self.fetch(**kwargs)
+        log.info(f" ✅ [{title}][Row: {load_cnt}] 수집 완료")
 
         log.info(f" ⏳ [{title}] 데이터 변환 진행중..")
-        transform = self.transform(data=fetch, **kwargs)
+        save_cnt = self.transform(**kwargs)
+        log.info(f" ✅ [{title}][Row: {save_cnt}] 저장 완료")
 
-        log.info(f" ⏳ [{title}][Row: {len(transform)}] 데이터 저장 진행중..")
-        load = self.load(data=transform, **kwargs)
-
-        log.info(f" ✅ [{title}][Row: {load}] 저장 완료")
-        return transform

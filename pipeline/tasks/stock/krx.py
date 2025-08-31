@@ -3,16 +3,18 @@
 """
 
 import pandas as pd
+import requests
+
 from pipeline.utils import preprocessing
 from pipeline.utils.default_request import Request
-from pipeline.tasks.common import ETL
+from pipeline.tasks.common import ELT
 from pipeline.table.models.stock.dim_company import CompanyDimension
 from pipeline.table.models.stock.fact_price import FactStockPrice
 from pipeline.table.base import DBConnection
 from pipeline.utils.datalake import DataLake, DataSource, EndPoint
 
 
-class KrxBase(ETL):
+class KrxBase(ELT):
     def __init__(self):
         super().__init__()
         self.request = Request()
@@ -38,10 +40,12 @@ class StockList(KrxBase):
     def __init__(self):
         super().__init__()
 
-    def fetch(self, **kwargs) -> pd.DataFrame:
+    def fetch(self, **kwargs) -> int:
         """
         Returns: 원본 상장사 목록
         """
+
+        # 1. KRX 상장사 목록 API 호출
         url = f"{self.url}/comm/bldAttendant/getJsonData.cmd"
         payload = {
             "bld": "dbms/MDC/STAT/standard/MDCSTAT01901",
@@ -53,36 +57,36 @@ class StockList(KrxBase):
         self.headers.update({"Content-length": "88"})
         res = self.request.post(url=url, data=payload, headers=self.headers)
 
-        # API 호출 결과를 DataFrame으로 변환
-        data = pd.DataFrame(res.json()["OutBlock_1"])
+        # 2. 데이터 레이크에 저장
+        save_cnt = self._load_to_datalake(res)
 
-        # data lake 저장
-        from datetime import datetime
+        return save_cnt
 
-        date = datetime.now().strftime("%Y%m%d")
-        DataLake.save_to_datalake(
-            data=data, endpoint=EndPoint.STOCK_LIST, source=DataSource.KRX, date=date
-        )
-
-        return data
-
-    def transform(self, data: pd.DataFrame = None, **kwargs) -> pd.DataFrame:
+    def _load_to_datalake(self, data: pd.DataFrame) -> int:
         """
-        한국 거래소(KRX)의 상장사 목록을 처리하는 함수
+        KRX 상장사 목록을 데이터 레이크에 저장
         :param data:
-        :param kwargs:
         :return:
         """
-        # 데이터가 없으면 데이터 레이크에서 로드
-        if data is None:
-            from datetime import datetime
+        # 2. API 호출 결과를 DataFrame으로 변환
+        data = pd.DataFrame(data.json()["OutBlock_1"])
 
-            date = kwargs.get("date", datetime.now().strftime("%Y%m%d"))
-            data = DataLake.load_from_datalake(
-                endpoint=EndPoint.STOCK_LIST, source=DataSource.KRX, date=date
-            )
+        # 3. data lake 저장
+        DataLake.save_to_datalake(
+            data=data, endpoint=EndPoint.STOCK_LIST, source=DataSource.KRX, date=None
+        )
+        return len(data)
 
-        # 데이터 변환
+    def transform(self, **kwargs) -> int:
+        """
+        한국 거래소(KRX)의 상장사 목록을 처리하는 함수
+        """
+        # 1. 데이터 레이크 로드
+        data = DataLake.load_from_datalake(
+            endpoint=EndPoint.STOCK_LIST, source=DataSource.KRX, date=None
+        )
+
+        # 2. 데이터 변환
         data["type"] = "STOCK"
         data["country"] = "KR"
         data["is_yn"] = "Y"
@@ -113,9 +117,13 @@ class StockList(KrxBase):
                 "ucode",
             ]
         ]
-        return data
 
-    def load(self, data: pd.DataFrame, **kwargs):
+        # 3. DB에 저장
+        cnt = self._load_to_db(data)
+
+        return cnt
+
+    def _load_to_db(self, data: pd.DataFrame):
         """
         데이터 저장
         :param data:
@@ -135,19 +143,27 @@ class StockPrice(KrxBase):
     def __init__(self):
         super().__init__()
 
-    def fetch(self, get_date: str = None, **kwargs) -> pd.DataFrame:
+    def _load_to_db(self, data: pd.DataFrame):
+        """
+        :param data: 최종 주가 데이터
+        :return:
+        """
+        uniq = ["ucode", "date"]
+        save_cnt = self.db.upserts(FactStockPrice, data, uniq)
+        return save_cnt
+
+    def fetch(self, get_date: str = None, **kwargs) -> int:
         """
         주가 목록을 가져오는 함수
         :param get_date: YYYYMMDD
         :param kwargs:
         :return:
         """
-        # 1. 설정
+        # 1. 값 설정
         if get_date is None:
             from datetime import datetime
 
             get_date = datetime.now().strftime("%Y%m%d")
-
         url = f"{self.url}comm/bldAttendant/getJsonData.cmd"
         payload = {
             "bld": "dbms/MDC/STAT/standard/MDCSTAT01501",
@@ -163,10 +179,21 @@ class StockPrice(KrxBase):
         # 2. API 호출
         res = self.request.post(url=url, data=payload, headers=self.headers)
 
-        # 3. 결과를 DataFrame으로 변환
+        # 3. 데이터 레이크에 저장
+        save_cnt = self._load_to_datalake(res, get_date)
+
+        return save_cnt
+
+    def _load_to_datalake(self, res: requests.Response, get_date: str):
+        """
+        :param res: 주가 데이터 API 응답 객체
+        :param get_date: 주가 데이터 조회 날짜 (YYYYMMDD)
+        :return:
+        """
+        # 1. 결과를 DataFrame으로 변환
         data = pd.DataFrame(res.json()["OutBlock_1"])
 
-        # 4. 데이터 레이크에 저장
+        # 2. 데이터 레이크에 저장
         DataLake.save_to_datalake(
             data=data,
             endpoint=EndPoint.STOCK_PRICE,
@@ -174,41 +201,28 @@ class StockPrice(KrxBase):
             date=get_date,
         )
 
-        # 5. 결과 반환
-        return data
+        return len(data)
 
-    def transform(self, data: pd.DataFrame = None, **kwargs):
+    def transform(self, get_date: str, data: pd.DataFrame = None, **kwargs):
         """
         주가 데이터를 처리하는 함수
+        :param get_date: 주가 데이터 조회 날짜 (YYYYMMDD)
         :param data:
         :param kwargs:
         :return:
         """
-        # 데이터가 없으면 데이터 레이크에서 로드
-        if data is None:
-            get_date = kwargs.get("params", {}).get("get_date")
-            if get_date is None:
-                from datetime import datetime
+        # 1. 데이터가 없으면 데이터 레이크에서 로드
+        data = DataLake.load_from_datalake(
+            endpoint=EndPoint.STOCK_PRICE, source=DataSource.KRX, date=get_date
+        )
 
-                get_date = datetime.now().strftime("%Y%m%d")
-
-            data = DataLake.load_from_datalake(
-                endpoint=EndPoint.STOCK_PRICE, source=DataSource.KRX, date=get_date
-            )
-
-        # 1. 데이터 추가
-        get_date = kwargs.get("params", {}).get("get_date")
-        if get_date is None:
-            from datetime import datetime
-
-            get_date = datetime.now().strftime("%Y%m%d")
-
+        # 2. 데이터 추가
         data["ucode"] = data.apply(
             lambda x: preprocessing.create_ucode("KR", x["ISU_SRT_CD"]), axis=1
         )
         data["date"] = pd.to_datetime(get_date, format="%Y%m%d").date()
 
-        # 2. 컬럼명 변경
+        # 3. 컬럼명 변경
         data.rename(
             columns={
                 "MKTCAP": "mkt_cap",
@@ -220,12 +234,14 @@ class StockPrice(KrxBase):
         )
 
         # 3. 전처리 (, 제거 )
-        data["mkt_cap"] = data["mkt_cap"].str.replace(",", "")
-        data["price"] = data["price"].str.replace(",", "")
-        data["volume"] = data["volume"].str.replace(",", "")
-        data["list_shrs"] = data["list_shrs"].str.replace(",", "")
+        cols = ["mkt_cap", "price", "volume", "list_shrs"]
+        for col in cols:
+            data[col] = data[col].str.replace(",", "")
         data = data[["ucode", "date", "mkt_cap", "price", "volume", "list_shrs"]]
-        return data
+
+        # 4. DW 저장
+        save_cnt = self._load_to_db(data=data)
+        return save_cnt
 
     def load(self, data: pd.DataFrame, **kwargs):
         """
