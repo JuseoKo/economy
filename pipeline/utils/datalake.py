@@ -29,8 +29,6 @@ class DataLake:
     DataLake 저장 클래스
     """
 
-    BASE_PATH = "datalake"
-
     @staticmethod
     def get_path(date: str, endpoint: EndPoint, source: DataSource) -> str:
         """
@@ -40,8 +38,20 @@ class DataLake:
         :param source: DataSource()
         :return:
         """
+        import inspect
+        import os
+        # 현재 프레임의 코드 객체 가져오기
+        frame = inspect.currentframe()
+
+        # 코드 객체에서 파일 이름 추출
+        filename = frame.f_code.co_filename
+
+        # 'economy' 이전까지의 경로 추출
+        result = filename.split("economy")[0] + "economy"
+
+        # DataLake 경로 반환
         return os.path.join(
-            DataLake.BASE_PATH, date, endpoint.value, f"{source.value}.parquet"
+            result, date, endpoint.value, f"{source.value}.parquet"
         )
 
     @staticmethod
