@@ -38,7 +38,7 @@ class StockList(KrxBase):
     def __init__(self):
         super().__init__()
 
-    def fetch(self) -> pd.DataFrame:
+    def fetch(self, **kwargs) -> pd.DataFrame:
         """
         Returns: 원본 상장사 목록
         """
@@ -115,7 +115,7 @@ class StockList(KrxBase):
         ]
         return data
 
-    def load(self, data: pd.DataFrame):
+    def load(self, data: pd.DataFrame, **kwargs):
         """
         데이터 저장
         :param data:
@@ -227,7 +227,7 @@ class StockPrice(KrxBase):
         data = data[["ucode", "date", "mkt_cap", "price", "volume", "list_shrs"]]
         return data
 
-    def load(self, data: pd.DataFrame):
+    def load(self, data: pd.DataFrame, **kwargs):
         """
         주가 데이터를 데이터베이스에 저장하는 함수
         :param data:

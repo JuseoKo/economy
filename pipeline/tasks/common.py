@@ -25,18 +25,18 @@ class ETL(metaclass=SingletonMeta):
         """
         pass
 
-    def run(self, title: str):
+    def run(self, title: str, **kwargs):
         """
         추출 - 변환 - 저장 실행 함수
         """
         log.info(f" ⏳ [{title}] 데이터 수집 진행중..")
-        fetch = self.fetch()
+        fetch = self.fetch(**kwargs)
 
         log.info(f" ⏳ [{title}] 데이터 변환 진행중..")
-        transform = self.transform(data=fetch)
+        transform = self.transform(data=fetch, **kwargs)
 
         log.info(f" ⏳ [{title}][Row: {len(transform)}] 데이터 저장 진행중..")
-        load = self.load(data=transform)
+        load = self.load(data=transform, **kwargs)
 
         log.info(f" ✅ [{title}][Row: {load}] 저장 완료")
         return transform

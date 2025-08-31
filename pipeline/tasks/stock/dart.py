@@ -68,7 +68,7 @@ class DartPerformanceList(DartBase):
         df = pd.DataFrame(data=datas, columns=["year", "period", "type", "name"])
         return df
 
-    def load(self, data: pd.DataFrame):
+    def load(self, data: pd.DataFrame, **kwargs):
         uniq = ["year", "period", "type"]
         res = self.db.upserts(DartReportPath, data, uniq)
 
@@ -116,7 +116,7 @@ class DartPerFormance(DartBase):
         df = self.db.selects(DartReportPath, filters)
         return df
 
-    def fetch(self, get_list: pd.DataFrame) -> pd.DataFrame | list:
+    def fetch(self, get_list: pd.DataFrame, **kwargs) -> pd.DataFrame | list:
         """
         필요한 재무재표 목록을 수집하는 함수
         https://opendart.fss.or.kr/cmm/downloadFnlttZip.do?fl_nm=2024_1Q_BS_20250221162310.zip
@@ -216,7 +216,7 @@ class DartPerFormance(DartBase):
 
         return res_data
 
-    def load(self, data: pd.DataFrame):
+    def load(self, data: pd.DataFrame, **kwargs):
         """
         필요한 재무재표 목록을 저장하는 함수
         """
@@ -253,7 +253,7 @@ class DartPerFormance(DartBase):
 
         return bs_res + cf_res + pl_res
 
-    def run(self, title: str):
+    def run(self, title: str, **kwargs):
         """
         추출 - 변환 - 저장 실행 함수
         """
