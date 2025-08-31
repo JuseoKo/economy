@@ -1,7 +1,7 @@
 import pandas as pd
 
-from utils import utils
-from utils.meta_class import SingletonMeta
+from pipeline.utils import utils
+from pipeline.utils.meta_class import SingletonMeta
 import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine

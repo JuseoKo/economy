@@ -2,20 +2,20 @@
 데이터 소스 http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
 """
 
-from table.models.stock.fact_bs import FactStockBS
-from table.models.stock.fact_cf import FactStockCF
-from table.models.stock.fact_pl import FactStockPL
-from table.models.other.dart_report_path import DartReportPath
+from pipeline.table.models.stock.fact_bs import FactStockBS
+from pipeline.table.models.stock.fact_cf import FactStockCF
+from pipeline.table.models.stock.fact_pl import FactStockPL
+from pipeline.table.models.other.dart_report_path import DartReportPath
 
 import time
 import pandas as pd
 from bs4 import BeautifulSoup
-from utils.default_request import Request
-from tasks.common import ETL
-from table.base import DBConnection
+from pipeline.utils.default_request import Request
+from pipeline.tasks.common import ETL
+from pipeline.table.base import DBConnection
 import re
 import requests
-from utils import utils, preprocessing
+from pipeline.utils import utils, preprocessing
 from airflow.logging_config import log
 import io
 

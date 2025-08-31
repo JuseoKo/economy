@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from pipeline.table.base import Base
 from alembic import context
-from utils import utils
+from pipeline.utils import utils
 import os
 import pipeline.table.models
 

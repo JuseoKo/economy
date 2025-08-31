@@ -1,4 +1,4 @@
-from tasks.stock import krx
+from pipeline.tasks.stock import krx
 
 
 def stock_list_run():
@@ -7,3 +7,6 @@ def stock_list_run():
 
 def stock_price_run():
     krx.StockPrice().run("KRX 주가 목록 수집")
+
+
+stock_list_run()

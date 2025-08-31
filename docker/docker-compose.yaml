@@ -6,11 +6,12 @@ x-airflow-common:
     dockerfile: docker/Dockerfile  # 상대 경로 주의
   environment:
     &airflow-common-env
+    PYTHONPATH: /opt/airflow/dags
     AIRFLOW__API_AUTH__JWT_SECRET: 'tfdabdfabdf'
 #    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
-    - ../pipeline:/opt/airflow/dags
+    - ../pipeline:/opt/airflow/dags/pipeline
     - ../logs:/opt/airflow/logs
     - ./config/airflow.cfg:/opt/airflow/config/airflow.cfg
   user: "${AIRFLOW_UID:-50000}:0"

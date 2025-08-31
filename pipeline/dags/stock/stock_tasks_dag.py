@@ -2,7 +2,7 @@ import pendulum
 
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
-from tasks.stock.krx import StockList, StockPrice
+from pipeline.tasks.stock.krx import StockList, StockPrice
 
 with DAG(
     dag_id="stock_price",

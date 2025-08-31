@@ -1,4 +1,4 @@
-from utils.meta_class import SingletonMeta
+from pipeline.utils.meta_class import SingletonMeta
 from airflow.logging_config import log
 import pandas as pd
 
