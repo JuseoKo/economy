@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, DateTime, PrimaryKeyConstraint
+from sqlalchemy import Column, DateTime, PrimaryKeyConstraint, String
+
 from ...base import Base
 from ..group.timestamp import TimestampMixin
 

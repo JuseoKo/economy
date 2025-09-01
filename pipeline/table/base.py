@@ -1,16 +1,15 @@
-import pandas as pd
-from sqlalchemy import and_
-from pipeline.utils import utils
-from pipeline.utils.meta_class import SingletonMeta
 import os
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from sqlalchemy import orm
-from sqlalchemy import func
-from sqlalchemy.dialects.postgresql import insert as pg_insert  # PG 전용 insert 사용 권장
-
 from contextlib import contextmanager
 
+import pandas as pd
+from sqlalchemy import and_, create_engine, func, orm
+from sqlalchemy.dialects.postgresql import (
+    insert as pg_insert,
+)  # PG 전용 insert 사용 권장
+from sqlalchemy.orm import sessionmaker
+
+from pipeline.utils import utils
+from pipeline.utils.meta_class import SingletonMeta
 
 Base = orm.declarative_base()
 
@@ -82,12 +81,14 @@ class DBConnection(metaclass=SingletonMeta):
         # 업데이트 대상 컬럼 결정
         if set_list is None:
             update_cols = [
-                c for c in data.columns
+                c
+                for c in data.columns
                 if c not in uniq_list and c not in ("created_at", "updated_at")
             ]
         else:
             update_cols = [
-                c for c in set_list
+                c
+                for c in set_list
                 if c not in uniq_list and c not in ("created_at", "updated_at")
             ]
 
@@ -124,7 +125,6 @@ class DBConnection(metaclass=SingletonMeta):
         res = query.all()
 
         rows = [
-            {k: v for k, v in vars(obj).items() if not k.startswith("_")}
-            for obj in res
+            {k: v for k, v in vars(obj).items() if not k.startswith("_")} for obj in res
         ]
         return pd.DataFrame(rows)

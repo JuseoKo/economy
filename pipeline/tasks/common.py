@@ -1,10 +1,10 @@
 from typing import Any
 
 import requests
-
-from pipeline.utils.meta_class import SingletonMeta
 from airflow.logging_config import log
+
 from pipeline.utils.datalake import DataLake, DataSource, EndPoint
+from pipeline.utils.meta_class import SingletonMeta
 
 
 class ELT(metaclass=SingletonMeta):
@@ -67,4 +67,3 @@ class ELT(metaclass=SingletonMeta):
         log.info(f" ⏳ [{title}] 데이터 변환 진행중..")
         save_cnt = self.transform(**kwargs)
         log.info(f" ✅ [{title}][Row: {save_cnt}] 저장 완료")
-

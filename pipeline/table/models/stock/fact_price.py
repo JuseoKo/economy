@@ -1,12 +1,13 @@
 from sqlalchemy import (
-    Column,
-    String,
-    Numeric,
-    Date,
     BigInteger,
-    UniqueConstraint,
+    Column,
+    Date,
+    Numeric,
     PrimaryKeyConstraint,
+    String,
+    UniqueConstraint,
 )
+
 from ...base import Base
 from ..group.timestamp import TimestampMixin
 

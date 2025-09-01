@@ -5,9 +5,10 @@ pipeline.tasks.stock.krx 모듈에 대한 테스트입니다.
 이 테스트는 ETL 프로세스의 각 단계를 독립적으로 검증하도록 설계되었습니다.
 """
 
-import pytest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
+import pytest
 from tasks.stock.krx import StockList, StockPrice
 
 

@@ -1,25 +1,26 @@
 """
 데이터 소스 http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
 """
+
+import io
+import re
+import time
+from datetime import datetime
 from typing import Any
 
+import pandas as pd
+import requests
+from airflow.logging_config import log
+from bs4 import BeautifulSoup
+
+from pipeline.table.base import DBConnection
+from pipeline.table.models.other.dart_report_path import DartReportPath
 from pipeline.table.models.stock.fact_bs import FactStockBS
 from pipeline.table.models.stock.fact_cf import FactStockCF
 from pipeline.table.models.stock.fact_pl import FactStockPL
-from pipeline.table.models.other.dart_report_path import DartReportPath
-
-import time
-import pandas as pd
-from bs4 import BeautifulSoup
-from pipeline.utils.default_request import Request
 from pipeline.tasks.common import ELT
-from pipeline.table.base import DBConnection
-from datetime import datetime
-import re
-import requests
-from pipeline.utils import utils, preprocessing
-from airflow.logging_config import log
-import io
+from pipeline.utils import preprocessing, utils
+from pipeline.utils.default_request import Request
 
 
 class DartBase(ELT):
@@ -67,7 +68,10 @@ class DartPerformanceList(DartBase):
         """
         # 1. data lake 저장
         self.DataLake.save_to_datalake(
-            data=data.text, endpoint=self.EndPoint.PERFORMANCE_LIST, source=self.DataSource.KRX, data_type="Text"
+            data=data.text,
+            endpoint=self.EndPoint.PERFORMANCE_LIST,
+            source=self.DataSource.KRX,
+            data_type="Text",
         )
 
     def transform(self, **kwargs):
@@ -76,7 +80,9 @@ class DartPerformanceList(DartBase):
         """
         # 1. 데이터 레이크 로드
         data = self.DataLake.load_from_datalake(
-            endpoint=self.EndPoint.PERFORMANCE_LIST, source=self.DataSource.KRX, data_type="Text"
+            endpoint=self.EndPoint.PERFORMANCE_LIST,
+            source=self.DataSource.KRX,
+            data_type="Text",
         )
 
         # 2. 데이터 전처리
@@ -86,7 +92,7 @@ class DartPerformanceList(DartBase):
         save_cnt = self._load_to_db(df)
         return save_cnt
 
-    def _preprocessing(self, data:pd.DataFrame, **kwargs) -> pd.DataFrame:
+    def _preprocessing(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         datas = []
 
         # 2. 전처리
@@ -102,9 +108,13 @@ class DartPerformanceList(DartBase):
         df = pd.DataFrame(data=datas, columns=["year", "period", "type", "name"])
 
         # ㄴ 날짜 문자열 뽑기
-        df["file_update_at"] = df["name"].str.split("_").str[-1].str.replace(".zip", "", regex=False)
+        df["file_update_at"] = (
+            df["name"].str.split("_").str[-1].str.replace(".zip", "", regex=False)
+        )
         # datetime으로 변환
-        df["file_update_at"] = pd.to_datetime(df["file_update_at"], format="%Y%m%d%H%M%S")
+        df["file_update_at"] = pd.to_datetime(
+            df["file_update_at"], format="%Y%m%d%H%M%S"
+        )
 
         return df
 
@@ -149,13 +159,11 @@ class DartPerFormance(DartBase):
         """
         target_date = datetime.strptime(get_date, "%Y%m%d").strftime("%Y-%m-%d")
         df = self.db.selects(
-            DartReportPath,
-            DartReportPath.file_update_at >= target_date
+            DartReportPath, DartReportPath.file_update_at >= target_date
         )
         return df
 
     def _get_request(self, fetch_list_df: pd.DataFrame, **kwargs) -> pd.DataFrame:
-
         df = pd.DataFrame()
 
         for i in range(len(fetch_list_df)):
@@ -188,9 +196,7 @@ class DartPerFormance(DartBase):
         """
         # 1. 데이터 레이크에 저장
         self.DataLake.save_to_datalake(
-            data=df,
-            endpoint=self.EndPoint.PERFORMANCE,
-            source=self.DataSource.KRX
+            data=df, endpoint=self.EndPoint.PERFORMANCE, source=self.DataSource.KRX
         )
 
         return len(df)
@@ -232,12 +238,12 @@ class DartPerFormance(DartBase):
     def _preprocessing(self, df: pd.DataFrame, **kwargs) -> Any:
         # 1. 컬럼명 수정
         re_col = {
-            '1': "symbol",
-            '7': "date",
-            '9': "currency",
-            '10': "column",
-            '11': "name",
-            '12': "value",
+            "1": "symbol",
+            "7": "date",
+            "9": "currency",
+            "10": "column",
+            "11": "name",
+            "12": "value",
         }
 
         # 피벗할 특정 컬럼 리스트
@@ -345,7 +351,9 @@ class DartPerFormance(DartBase):
         추출 - 변환 - 저장 실행 함수
         """
         fetch_list_cnt = self._get_fetch_list(**kwargs)
-        log.info(f" ✅ [{title}][Row: {len(fetch_list_cnt)}] 수집 데이터 목록 조회 완료")
+        log.info(
+            f" ✅ [{title}][Row: {len(fetch_list_cnt)}] 수집 데이터 목록 조회 완료"
+        )
 
         fetch_cnt = self.fetch(**kwargs)
         log.info(f" ✅ [{title}][Row: {fetch_cnt}] 데이터 수집 완료 ")

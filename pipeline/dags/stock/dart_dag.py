@@ -1,8 +1,8 @@
 import pendulum
-
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
-from pipeline.tasks.stock.dart import DartPerformanceList, DartPerFormance
+
+from pipeline.tasks.stock.dart import DartPerFormance, DartPerformanceList
 
 with DAG(
     dag_id="dart_performance",

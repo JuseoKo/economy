@@ -1,8 +1,9 @@
-from enum import Enum
 import os
-import pandas as pd
 from datetime import datetime
+from enum import Enum
 from typing import Optional, Union
+
+import pandas as pd
 
 
 class DataSource(Enum):
@@ -32,7 +33,9 @@ class DataLake:
     """
 
     @staticmethod
-    def get_path(date: str, endpoint: EndPoint, source: DataSource, data_type: str) -> str:
+    def get_path(
+        date: str, endpoint: EndPoint, source: DataSource, data_type: str
+    ) -> str:
         """
         DataLake 저장 주소 구하는 함수
         :param date: YYYYMMDD
@@ -43,6 +46,7 @@ class DataLake:
         """
         import inspect
         import os
+
         # 현재 프레임의 코드 객체 가져오기
         frame = inspect.currentframe()
 
@@ -54,13 +58,9 @@ class DataLake:
 
         # DataLake 경로 반환
         if data_type == "DataFrame":
-            path = os.path.join(
-                result, date, endpoint.value, f"{source.value}.parquet"
-            )
+            path = os.path.join(result, date, endpoint.value, f"{source.value}.parquet")
         elif data_type == "Text":
-            path = os.path.join(
-                result, date, endpoint.value, f"{source.value}.text"
-            )
+            path = os.path.join(result, date, endpoint.value, f"{source.value}.text")
         return path
 
     @staticmethod
@@ -99,7 +99,10 @@ class DataLake:
 
     @staticmethod
     def load_from_datalake(
-        endpoint: EndPoint, source: DataSource, date: Optional[str] = None, data_type: Optional[str] = "DataFrame",
+        endpoint: EndPoint,
+        source: DataSource,
+        date: Optional[str] = None,
+        data_type: Optional[str] = "DataFrame",
     ) -> Union[pd.DataFrame, str]:
         """
         DataLake 데이터 로드

@@ -1,11 +1,12 @@
-import os
-from dotenv import load_dotenv
-import zipfile
 import io
+import os
 import pickle
-from typing import Any
 import re
+import zipfile
+from typing import Any
+
 import chardet
+from dotenv import load_dotenv
 
 
 def setings_env() -> None:

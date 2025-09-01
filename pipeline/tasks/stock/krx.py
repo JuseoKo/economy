@@ -1,17 +1,19 @@
 """
 데이터 소스 http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
 """
+
 from typing import Any
 
 import pandas as pd
 import requests
 
-from pipeline.utils import preprocessing
-from pipeline.utils.default_request import Request
-from pipeline.tasks.common import ELT
+from pipeline.table.base import DBConnection
 from pipeline.table.models.stock.dim_company import CompanyDimension
 from pipeline.table.models.stock.fact_price import FactStockPrice
-from pipeline.table.base import DBConnection
+from pipeline.tasks.common import ELT
+from pipeline.utils import preprocessing
+from pipeline.utils.default_request import Request
+
 
 class KrxBase(ELT):
     def __init__(self):
@@ -177,7 +179,7 @@ class StockPrice(KrxBase):
 
         return save_cnt
 
-    def _get_request(self, get_date:str, **kwargs) -> requests.Response:
+    def _get_request(self, get_date: str, **kwargs) -> requests.Response:
         """
         :param get_date: YYYYMMDD
         """
@@ -226,7 +228,9 @@ class StockPrice(KrxBase):
         """
         # 1. 데이터가 없으면 데이터 레이크에서 로드
         data = self.DataLake.load_from_datalake(
-            endpoint=self.EndPoint.STOCK_PRICE, source=self.DataSource.KRX, date=get_date
+            endpoint=self.EndPoint.STOCK_PRICE,
+            source=self.DataSource.KRX,
+            date=get_date,
         )
 
         # 2. 데이터 전처리
@@ -236,7 +240,7 @@ class StockPrice(KrxBase):
         save_cnt = self._load_to_db(data=data)
         return save_cnt
 
-    def _preprocessing(self, data:pd.DataFrame, get_date: str, **kwargs) -> Any:
+    def _preprocessing(self, data: pd.DataFrame, get_date: str, **kwargs) -> Any:
         # 1. 데이터 추가
         data["ucode"] = data.apply(
             lambda x: preprocessing.create_ucode("KR", x["ISU_SRT_CD"]), axis=1

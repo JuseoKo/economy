@@ -1,12 +1,12 @@
+import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from pipeline.table.base import Base
-from alembic import context
-from pipeline.utils import utils
-import os
+from sqlalchemy import engine_from_config, pool
+
 import pipeline.table.models
+from alembic import context
+from pipeline.table.base import Base
+from pipeline.utils import utils
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -14,7 +14,7 @@ config = context.config
 
 # env 설정
 utils.setings_env()
-database_url = f'postgresql+psycopg2://{os.getenv("API_USER")}:{os.getenv("API_PASSWORD")}@{os.getenv("API_HOST")}:5432/{os.getenv("API_NAME")}'
+database_url = f"postgresql+psycopg2://{os.getenv('API_USER')}:{os.getenv('API_PASSWORD')}@{os.getenv('API_HOST')}:5432/{os.getenv('API_NAME')}"
 config.set_main_option("sqlalchemy.url", database_url)
 print(database_url)
 # Interpret the config file for Python logging.
@@ -72,9 +72,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
