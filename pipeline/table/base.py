@@ -1,12 +1,14 @@
 import pandas as pd
-
+from sqlalchemy import and_
 from pipeline.utils import utils
 from pipeline.utils.meta_class import SingletonMeta
 import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import orm
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import func
+from sqlalchemy.dialects.postgresql import insert as pg_insert  # PG 전용 insert 사용 권장
+
 from contextlib import contextmanager
 
 
@@ -68,23 +70,38 @@ class DBConnection(metaclass=SingletonMeta):
         set_list : 업데이트할 컬럼 목록
         fk_table : FK 지정된 테이블
         fk_col : FK 지정된 컬럼
-
-
         """
-        if set_list is None:
-            col = set(data.columns)
-            set_ = {c: getattr(insert(table).excluded, c) for c in col - set(uniq_list)}
-        else:
-            set_ = {c: getattr(insert(table).excluded, c) for c in set_list}
+        if data is None or data.empty:
+            return 0
 
-        stmt = (
-            insert(table)
-            .values(data.to_dict("records"))
-            .on_conflict_do_update(
-                index_elements=uniq_list,  # 충돌 시 기준이 되는 컬럼
-                set_=set_,  # ucode를 제외한 모든 컬럼 업데이트
-            )
+        records = data.to_dict("records")
+
+        ins = pg_insert(table).values(records)
+        excluded = ins.excluded  # EXCLUDED 별칭 재사용
+
+        # 업데이트 대상 컬럼 결정
+        if set_list is None:
+            update_cols = [
+                c for c in data.columns
+                if c not in uniq_list and c not in ("created_at", "updated_at")
+            ]
+        else:
+            update_cols = [
+                c for c in set_list
+                if c not in uniq_list and c not in ("created_at", "updated_at")
+            ]
+
+        # EXCLUDED 값으로 갱신 + updated_at은 항상 now()로
+        set_dict = {c: getattr(excluded, c) for c in update_cols}
+        set_dict["updated_at"] = func.now()
+
+        stmt = ins.on_conflict_do_update(
+            index_elements=uniq_list,
+            set_=set_dict,
+            # (옵션) 특정 조건에서만 업데이트하고 싶으면 where= 추가 가능
+            # where=(table.c.some_flag.is_(True))
         )
+
         with self.session_scope() as session:
             res = session.execute(stmt)
             return res.rowcount
@@ -92,33 +109,22 @@ class DBConnection(metaclass=SingletonMeta):
     def deletes(self):
         pass
 
-    def selects(self, table, filters: dict):
+    def selects(self, table, *conditions) -> pd.DataFrame:
         """
-        데이터를 가져오는 함수
-        :param table: 테이블 객체
-        :param filters: 필터
-            ㄴ filters = {
-                'year': 2023,  # ==
-                'type': {'in': ['CFS', 'OFS']},  # IN
-                'period': {'like': 'Q%'},  # LIKE
-                'created_at': {'between': ['2023-01-01', '2023-12-31']},  # BETWEEN
-                'test1': {'ne': '1'},  # !=
-                'test1': {'lt': '1'},  # <
-                'test1': {'le': '1'},  # <=
-                'test1': {'gt': '1'},  # >
-                'test1': {'ge': '1'},  # >=
-            }
-        :return:
+        스마트한 SQLAlchemy 조건 기반 조회
+        :param table: SQLAlchemy 모델
+        :param conditions: SQLAlchemy 조건 표현식 (ex. table.col == value, col.in_(...), ...)
+        :return: pandas DataFrame
         """
-        # 조건부 조회
-        res = self.session.query(table).filter_by(**filters).all()
+        query = self.session.query(table)
 
-        rows = []
+        if conditions:
+            query = query.filter(and_(*conditions))
 
-        for obj in res:
-            # SQLAlchemy 내부 속성인 `_sa_instance_state`는 제거
-            row = {k: v for k, v in vars(obj).items() if not k.startswith("_")}
-            rows.append(row)
+        res = query.all()
 
-        df = pd.DataFrame(rows)
-        return df
+        rows = [
+            {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+            for obj in res
+        ]
+        return pd.DataFrame(rows)

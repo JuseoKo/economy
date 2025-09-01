@@ -1,6 +1,7 @@
 """
 데이터 소스 http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
 """
+from typing import Any
 
 from pipeline.table.models.stock.fact_bs import FactStockBS
 from pipeline.table.models.stock.fact_cf import FactStockCF
@@ -11,8 +12,9 @@ import time
 import pandas as pd
 from bs4 import BeautifulSoup
 from pipeline.utils.default_request import Request
-from pipeline.tasks.common import ETL
+from pipeline.tasks.common import ELT
 from pipeline.table.base import DBConnection
+from datetime import datetime
 import re
 import requests
 from pipeline.utils import utils, preprocessing
@@ -20,7 +22,7 @@ from airflow.logging_config import log
 import io
 
 
-class DartBase(ETL):
+class DartBase(ELT):
     def __init__(self):
         super().__init__()
         self.request = Request()
@@ -41,34 +43,72 @@ class DartPerformanceList(DartBase):
     def __init__(self):
         super().__init__()
 
-    def fetch(self, **kwargs):
+    def fetch(self, **kwargs) -> int:
         """
         수집할 재무재표 목록을 가져오는 함수
         """
-        res = self.request.post(
+        # 1. 재무재표 목록 호출
+        response = self._get_request()
+
+        # 2. 데이터 레이크에 저장
+        self._load_to_datalake(response)
+        return 1
+
+    def _get_request(self, **kwargs) -> requests.Response:
+        return self.request.post(
             url=self.url + "disclosureinfo/fnltt/dwld/list.do", headers=self.headers
         )
-        return res
 
-    @staticmethod
-    def transform(data: requests.Response, **kwargs):
+    def _load_to_datalake(self, data: requests.Response) -> None:
+        """
+        KRX 상장사 목록을 데이터 레이크에 저장
+        :param data:
+        :return:
+        """
+        # 1. data lake 저장
+        self.DataLake.save_to_datalake(
+            data=data.text, endpoint=self.EndPoint.PERFORMANCE_LIST, source=self.DataSource.KRX, data_type="Text"
+        )
+
+    def transform(self, **kwargs):
         """
         수집할 재무재표 목록을 추출하는 함수
         """
+        # 1. 데이터 레이크 로드
+        data = self.DataLake.load_from_datalake(
+            endpoint=self.EndPoint.PERFORMANCE_LIST, source=self.DataSource.KRX, data_type="Text"
+        )
+
+        # 2. 데이터 전처리
+        df = self._preprocessing(data)
+
+        # 3. 데이터 저장
+        save_cnt = self._load_to_db(df)
+        return save_cnt
+
+    def _preprocessing(self, data:pd.DataFrame, **kwargs) -> pd.DataFrame:
         datas = []
 
-        # 전처리
-        soup = BeautifulSoup(data.text, "html.parser")
+        # 2. 전처리
+        # ㄴ 파싱하여 DF 생성
+        soup = BeautifulSoup(data, "html.parser")
         for data in soup.find_all("a"):
             if data.get("onclick") is None:
                 continue
             parsing_data = re.findall(r"'(.*?)'", data.get("onclick"))
             datas.append(parsing_data)
 
+        # ㄴ 헤더 적재
         df = pd.DataFrame(data=datas, columns=["year", "period", "type", "name"])
+
+        # ㄴ 날짜 문자열 뽑기
+        df["file_update_at"] = df["name"].str.split("_").str[-1].str.replace(".zip", "", regex=False)
+        # datetime으로 변환
+        df["file_update_at"] = pd.to_datetime(df["file_update_at"], format="%Y%m%d%H%M%S")
+
         return df
 
-    def load(self, data: pd.DataFrame, **kwargs):
+    def _load_to_db(self, data: pd.DataFrame, **kwargs):
         uniq = ["year", "period", "type"]
         res = self.db.upserts(DartReportPath, data, uniq)
 
@@ -84,6 +124,54 @@ class DartPerFormance(DartBase):
     def __init__(self):
         super().__init__()
 
+    def fetch(self, get_date: str, **kwargs) -> int:
+        """
+        필요한 재무재표 목록을 수집하는 함수
+        https://opendart.fss.or.kr/cmm/downloadFnlttZip.do?fl_nm=2024_1Q_BS_20250221162310.zip
+        """
+        # 1. fetch 목록 추출
+        fetch_list_df = self._get_fetch_list(get_date=get_date)
+        fetch_list_df = fetch_list_df[fetch_list_df["type"] != "CE"]
+
+        # 2. 데이터 수집
+        df = self._get_request(fetch_list_df=fetch_list_df)
+
+        # 3. Datalake 저장
+        self._load_to_datalake(df)
+
+        return len(df)
+
+    def _get_fetch_list(self, get_date: str, **kwargs) -> pd.DataFrame:
+        """
+        수집할 데이터 정보를 가져오는 함수입니다.
+        :param get_date: YYYYMMDD
+        :return:
+        """
+        target_date = datetime.strptime(get_date, "%Y%m%d").strftime("%Y-%m-%d")
+        df = self.db.selects(
+            DartReportPath,
+            DartReportPath.file_update_at >= target_date
+        )
+        return df
+
+    def _get_request(self, fetch_list_df: pd.DataFrame, **kwargs) -> pd.DataFrame:
+
+        df = pd.DataFrame()
+
+        for i in range(len(fetch_list_df)):
+            # 1. 데이터 수집
+            response = self._get_main_data(fetch_list_df, i)
+
+            # 2. zip 파일에서 데이터 추출
+            res_list = utils.load_zip_file_to_text(
+                io.BytesIO(response.content), "CP949"
+            )
+
+            # 3. 데이터 concat
+            df = pd.concat([df, self._concat_data(res_list)], axis=0)
+
+        return df
+
     def _get_main_data(self, get_list: pd.DataFrame, i: int) -> requests.Response:
         params = {"fl_nm": get_list.iloc[i]["name"]}
         url = self.url + "/cmm/downloadFnlttZip.do"
@@ -91,6 +179,21 @@ class DartPerFormance(DartBase):
         time.sleep(3)
 
         return res
+
+    def _load_to_datalake(self, df: pd.DataFrame):
+        """
+        :param res: 주가 데이터 API 응답 객체
+        :param get_date: 주가 데이터 조회 날짜 (YYYYMMDD)
+        :return:
+        """
+        # 1. 데이터 레이크에 저장
+        self.DataLake.save_to_datalake(
+            data=df,
+            endpoint=self.EndPoint.PERFORMANCE,
+            source=self.DataSource.KRX
+        )
+
+        return len(df)
 
     @staticmethod
     def _concat_data(res_list: list) -> pd.DataFrame:
@@ -107,50 +210,34 @@ class DartPerFormance(DartBase):
 
         return res_df
 
-    def get_fetch_data_list(self) -> pd.DataFrame:
-        """
-        수집할 데이터 정보를 가져오는 함수입니다.
-        :return:
-        """
-        filters = {"year": "2025"}
-        df = self.db.selects(DartReportPath, filters)
-        return df
-
-    def fetch(self, get_list: pd.DataFrame, **kwargs) -> pd.DataFrame | list:
-        """
-        필요한 재무재표 목록을 수집하는 함수
-        https://opendart.fss.or.kr/cmm/downloadFnlttZip.do?fl_nm=2024_1Q_BS_20250221162310.zip
-        """
-        df = pd.DataFrame()
-        get_list = get_list[get_list["type"] != "CE"][:12]
-        for i in range(len(get_list)):
-            # 1. 데이터 수집
-            response = self._get_main_data(get_list, i)
-
-            # 2. zip 파일에서 데이터 추출
-            res_list = utils.load_zip_file_to_text(
-                io.BytesIO(response.content), "CP949"
-            )
-
-            # 3. 데이터 concat
-            df = pd.concat([df, self._concat_data(res_list)], axis=0)
-
-        return df
-
-    def transform(self, data: pd.DataFrame, **kwargs):
+    def transform(self, **kwargs) -> int:
         """
         필요한 재무재표 목록을 변환하는 함수
 
         보고서 타입 : ['1분기보고서', '반기보고서', '3분기보고서', '사업보고서']
         """
+        # 1. 데이터 레이크 로드
+        df = self.DataLake.load_from_datalake(
+            endpoint=self.EndPoint.PERFORMANCE, source=self.DataSource.KRX
+        )
+
+        # 2. 데이터 전처리
+        res_data = self._preprocessing(df, **kwargs)
+
+        # 3. 데이터 저장
+        save_cnt = self._load_to_db(data=res_data, **kwargs)
+
+        return save_cnt
+
+    def _preprocessing(self, df: pd.DataFrame, **kwargs) -> Any:
         # 1. 컬럼명 수정
         re_col = {
-            1: "symbol",
-            7: "date",
-            9: "currency",
-            10: "column",
-            11: "name",
-            12: "value",
+            '1': "symbol",
+            '7': "date",
+            '9': "currency",
+            '10': "column",
+            '11': "name",
+            '12': "value",
         }
 
         # 피벗할 특정 컬럼 리스트
@@ -172,7 +259,8 @@ class DartPerFormance(DartBase):
             "ifrs-full_Inventories": "inventory",  # 재고자산
         }
 
-        data = data.rename(columns=re_col)
+        data = df.rename(columns=re_col)
+
         # 2. 필요한 컬럼만 선택 및 데이터 전처리
         data = data[list(re_col.values())]
         data = data[data["symbol"] != "[null]"]
@@ -213,10 +301,9 @@ class DartPerFormance(DartBase):
         res_data = preprocessing.convert_numeric(
             list(target_columns.values()), res_data
         )
-
         return res_data
 
-    def load(self, data: pd.DataFrame, **kwargs):
+    def _load_to_db(self, data: pd.DataFrame, **kwargs) -> int:
         """
         필요한 재무재표 목록을 저장하는 함수
         """
@@ -257,14 +344,11 @@ class DartPerFormance(DartBase):
         """
         추출 - 변환 - 저장 실행 함수
         """
-        fetch_list = self.get_fetch_data_list()
-        log.info(f" ✅ [{title}][Row: {len(fetch_list)}] 수집 데이터 목록 조회 완료")
+        fetch_list_cnt = self._get_fetch_list(**kwargs)
+        log.info(f" ✅ [{title}][Row: {len(fetch_list_cnt)}] 수집 데이터 목록 조회 완료")
 
-        fetch = self.fetch(fetch_list)
-        log.info(f" ✅ [{title}][Row: {len(fetch)}] 데이터 수집 완료 ")
+        fetch_cnt = self.fetch(**kwargs)
+        log.info(f" ✅ [{title}][Row: {fetch_cnt}] 데이터 수집 완료 ")
 
-        transform = self.transform(fetch)
-        log.info(f" ✅ [{title}][Row: {len(transform)}/{len(fetch)}] 데이터 변환 완료 ")
-
-        load = self.load(transform)
-        log.info(f" ✅ [{title}][Row: {load}/{len(transform)}] 데이터 저장 완료 ")
+        transform_cnt = self.transform()
+        log.info(f" ✅ [{title}][Row: {transform_cnt}] 데이터 변환 완료 ")

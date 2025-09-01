@@ -2,7 +2,7 @@ from enum import Enum
 import os
 import pandas as pd
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 
 
 class DataSource(Enum):
@@ -22,6 +22,8 @@ class EndPoint(Enum):
     STOCK_LIST = "stock_list"
     STOCK_PRICE = "stock_price"
     SHORT_BALANCE = "short_balance"
+    PERFORMANCE_LIST = "performance_list"
+    PERFORMANCE = "performance"
 
 
 class DataLake:
@@ -30,12 +32,13 @@ class DataLake:
     """
 
     @staticmethod
-    def get_path(date: str, endpoint: EndPoint, source: DataSource) -> str:
+    def get_path(date: str, endpoint: EndPoint, source: DataSource, data_type: str) -> str:
         """
         DataLake 저장 주소 구하는 함수
         :param date: YYYYMMDD
         :param endpoint: EndPoint()
         :param source: DataSource()
+        :param data_type: DataFrame, Text
         :return:
         """
         import inspect
@@ -47,19 +50,26 @@ class DataLake:
         filename = frame.f_code.co_filename
 
         # 'economy' 이전까지의 경로 추출
-        result = filename.split("economy")[0] + "economy"
+        result = filename.split("economy")[0] + "economy" + "/datalake"
 
         # DataLake 경로 반환
-        return os.path.join(
-            result, date, endpoint.value, f"{source.value}.parquet"
-        )
+        if data_type == "DataFrame":
+            path = os.path.join(
+                result, date, endpoint.value, f"{source.value}.parquet"
+            )
+        elif data_type == "Text":
+            path = os.path.join(
+                result, date, endpoint.value, f"{source.value}.text"
+            )
+        return path
 
     @staticmethod
     def save_to_datalake(
-        data: pd.DataFrame,
+        data: Union[pd.DataFrame, str],
         endpoint: EndPoint,
         source: DataSource,
         date: Optional[str] = None,
+        data_type: Optional[str] = "DataFrame",
     ) -> str:
         """
         Parquet 포맷 으로 데이터 저장
@@ -67,40 +77,52 @@ class DataLake:
         :param endpoint: EndPoint()
         :param source: DataSource()
         :param date: YYYYMMDD
+        :param data_type: str: DataFrame, Text
         :return:
         """
         if date is None:
             date = datetime.now().strftime("%Y%m%d")
 
-        file_path = DataLake.get_path(date, endpoint, source)
+        file_path = DataLake.get_path(date, endpoint, source, data_type)
 
         # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
         # Save to parquet
-        data.to_parquet(file_path, index=False)
+        if data_type == "DataFrame":
+            data.to_parquet(file_path, index=False)
+        elif data_type == "Text":
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(data)
 
         return file_path
 
     @staticmethod
     def load_from_datalake(
-        endpoint: EndPoint, source: DataSource, date: Optional[str] = None
-    ) -> pd.DataFrame:
+        endpoint: EndPoint, source: DataSource, date: Optional[str] = None, data_type: Optional[str] = "DataFrame",
+    ) -> Union[pd.DataFrame, str]:
         """
         DataLake 데이터 로드
         :param endpoint: EndPoint()
         :param source: DataSource()
         :param date: YYYYMMDD
+        :param data_type: str: DataFrame, Text
         :return:
         """
         if date is None:
             date = datetime.now().strftime("%Y%m%d")
 
-        file_path = DataLake.get_path(date, endpoint, source)
+        file_path = DataLake.get_path(date, endpoint, source, data_type)
 
         # Check if file exists
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Data lake file not found: {file_path}")
 
         # Load from parquet
-        return pd.read_parquet(file_path)
+        if data_type == "DataFrame":
+            res = pd.read_parquet(file_path)
+        elif data_type == "Text":
+            with open(file_path, "r", encoding="utf-8") as f:
+                res = f.read()
+
+        return res

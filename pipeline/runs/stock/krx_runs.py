@@ -6,7 +6,7 @@ def stock_list_run():
 
 
 def stock_price_run():
-    krx.StockPrice().run("KRX 주가 목록 수집")
+    krx.StockPrice().run(title="KRX 주가 목록 수집", get_date='20250825')
 
 
-stock_list_run()
+stock_price_run()

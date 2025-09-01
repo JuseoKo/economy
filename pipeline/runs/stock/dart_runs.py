@@ -6,4 +6,7 @@ def dart_performance_list_run():
 
 
 def dart_performance_run():
-    dart.DartPerFormance().run("DART 재무 데이터 수집")
+    dart.DartPerFormance().run(title="DART 재무 데이터 수집", get_date='20250830')
+
+
+dart_performance_run()
