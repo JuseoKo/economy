@@ -13,6 +13,7 @@ psycopg==3.2.9
 psycopg2-binary==2.9.10
 alembic==1.16.5
 sqlalchemy==1.4.53
+pgvector==0.3.4
 
 # airflow 라이브러리
 apache-airflow==3.0.4

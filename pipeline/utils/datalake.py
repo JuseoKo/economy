@@ -13,6 +13,8 @@ class DataSource(Enum):
 
     KRX = "krx"
     DART = "dart"
+    NEWS_BBC = "news_bbc"
+    NEWS_GENERIC = "news_generic"
 
 
 class EndPoint(Enum):
@@ -25,6 +27,8 @@ class EndPoint(Enum):
     SHORT_BALANCE = "short_balance"
     PERFORMANCE_LIST = "performance_list"
     PERFORMANCE = "performance"
+    NEWS_RSS = "news_rss"
+    NEWS_ARTICLES = "news_articles"
 
 
 class DataLake:
